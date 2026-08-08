@@ -1,165 +1,320 @@
 import {
-  FaFacebookF,
-  FaInstagram,
-  FaLinkedinIn,
-  FaWhatsapp,
-  FaPhoneAlt,
-  FaEnvelope,
-  FaMapMarkerAlt,
-  FaHeart,
-} from "react-icons/fa";
+  Mail,
+  Phone,
+  MapPin,
+  Heart,
+  ArrowUp,
+} from "lucide-react";
 
-import logo from "../assets/logo.png";
+const Footer = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
-function Footer() {
+  const socialLinks = [
+    {
+      name: "Facebook",
+      icon: "f",
+      url: "#",
+    },
+    {
+      name: "Instagram",
+      icon: "◎",
+      url: "#",
+    },
+    {
+      name: "YouTube",
+      icon: "▶",
+      url: "#",
+    },
+  ];
+
+  const quickLinks = [
+    {
+      name: "होम",
+      href: "#home",
+    },
+    {
+      name: "हमारे बारे में",
+      href: "#about",
+    },
+    {
+      name: "हमारा मिशन",
+      href: "#mission",
+    },
+    {
+      name: "हमारी सेवाएं",
+      href: "#services",
+    },
+    {
+      name: "इवेंट्स",
+      href: "#events",
+    },
+    {
+      name: "गैलरी",
+      href: "#gallery",
+    },
+    {
+      name: "संपर्क करें",
+      href: "#contact",
+    },
+  ];
+
+  const importantLinks = [
+    {
+      name: "स्वयंसेवक बनें",
+      href: "#volunteer",
+    },
+    {
+      name: "सहयोग करें",
+      href: "#donate",
+    },
+    {
+      name: "सामान्य प्रश्न",
+      href: "#faq",
+    },
+    {
+      name: "आगामी कार्यक्रम",
+      href: "#events",
+    },
+    {
+      name: "हमारी गतिविधियां",
+      href: "#gallery",
+    },
+  ];
+
   return (
-    <footer className="bg-green-900 text-white pt-16 pb-6">
+    <footer className="bg-gray-950 text-white">
 
-      <div className="max-w-7xl mx-auto px-5 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+      {/* =========================
+          MAIN FOOTER
+      ========================== */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-14">
 
-        {/* Logo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
-        <div>
+          {/* =========================
+              ABOUT NGO
+          ========================== */}
+          <div>
 
-          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold mb-4">
+              युवा{" "}
+              <span className="text-orange-500">
+                सारथी
+              </span>
+            </h2>
 
-            <img
-              src={logo}
-              alt="Logo"
-              className="w-16 h-16 rounded-full bg-white p-1"
-            />
+            <p className="text-gray-400 leading-7">
+              युवा सारथी सेवा संस्था छत्तीसगढ़ समाज के विकास,
+              शिक्षा, स्वास्थ्य, स्वच्छता, पर्यावरण संरक्षण और
+              समानता के लिए निरंतर कार्य कर रही है।
+            </p>
 
-            <div>
+            <p className="mt-5 text-orange-400 font-semibold">
+              #स्वार्थी नहीं सारथी बनो#
+            </p>
 
-              <h2 className="text-2xl font-bold">
+            {/* =========================
+                SOCIAL LINKS
+            ========================== */}
+            <div className="flex gap-3 mt-6">
 
-                युवा सारथी
-
-              </h2>
-
-              <p className="text-green-200">
-
-                सेवा संस्था छत्तीसगढ़
-
-              </p>
-
-            </div>
-
-          </div>
-
-          <p className="mt-5 leading-8 text-green-100">
-
-            शिक्षा, स्वास्थ्य, पर्यावरण संरक्षण एवं समाज सेवा
-            के क्षेत्र में कार्यरत एक सामाजिक संस्था।
-
-          </p>
-
-        </div>
-
-        {/* Quick Links */}
-
-        <div>
-
-          <h3 className="text-xl font-bold mb-5">
-
-            Quick Links
-
-          </h3>
-
-          <ul className="space-y-3 text-green-100">
-
-            <li><a href="#home" className="hover:text-orange-400">मुख्य पृष्ठ</a></li>
-
-            <li><a href="#about" className="hover:text-orange-400">हमारे बारे में</a></li>
-
-            <li><a href="#services" className="hover:text-orange-400">सेवाएँ</a></li>
-
-            <li><a href="#gallery" className="hover:text-orange-400">गैलरी</a></li>
-
-            <li><a href="#contact" className="hover:text-orange-400">संपर्क</a></li>
-
-          </ul>
-
-        </div>
-
-        {/* Contact */}
-
-        <div>
-
-          <h3 className="text-xl font-bold mb-5">
-
-            संपर्क
-
-          </h3>
-
-          <div className="space-y-4 text-green-100">
-
-            <div className="flex gap-3">
-
-              <FaPhoneAlt className="mt-1 text-orange-400"/>
-
-              <span>+91 9876543210</span>
-
-            </div>
-
-            <div className="flex gap-3">
-
-              <FaEnvelope className="mt-1 text-orange-400"/>
-
-              <span>info@yuvasarathi.org</span>
-
-            </div>
-
-            <div className="flex gap-3">
-
-              <FaMapMarkerAlt className="mt-1 text-orange-400"/>
-
-              <span>कवर्धा, छत्तीसगढ़</span>
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.url}
+                  aria-label={social.name}
+                  className="
+                    w-10
+                    h-10
+                    rounded-full
+                    bg-gray-800
+                    hover:bg-orange-500
+                    flex
+                    items-center
+                    justify-center
+                    transition-all
+                    duration-300
+                    hover:-translate-y-1
+                    font-bold
+                  "
+                >
+                  {social.icon}
+                </a>
+              ))}
 
             </div>
 
           </div>
 
-        </div>
+          {/* =========================
+              QUICK LINKS
+          ========================== */}
+          <div>
 
-        {/* Social */}
+            <h3 className="text-lg font-bold mb-5">
+              Quick Links
+            </h3>
 
-        <div>
+            <ul className="space-y-3">
 
-          <h3 className="text-xl font-bold mb-5">
+              {quickLinks.map((link) => (
+                <li key={link.name}>
 
-            Follow Us
+                  <a
+                    href={link.href}
+                    className="
+                      text-gray-400
+                      hover:text-orange-400
+                      transition
+                    "
+                  >
+                    {link.name}
+                  </a>
 
-          </h3>
+                </li>
+              ))}
 
-          <div className="flex gap-4">
+            </ul>
 
+          </div>
+
+          {/* =========================
+              IMPORTANT LINKS
+          ========================== */}
+          <div>
+
+            <h3 className="text-lg font-bold mb-5">
+              महत्वपूर्ण
+            </h3>
+
+            <ul className="space-y-3">
+
+              {importantLinks.map((link) => (
+                <li key={link.name}>
+
+                  <a
+                    href={link.href}
+                    className="
+                      text-gray-400
+                      hover:text-orange-400
+                      transition
+                    "
+                  >
+                    {link.name}
+                  </a>
+
+                </li>
+              ))}
+
+            </ul>
+
+          </div>
+
+          {/* =========================
+              CONTACT
+          ========================== */}
+          <div>
+
+            <h3 className="text-lg font-bold mb-5">
+              संपर्क करें
+            </h3>
+
+            <div className="space-y-5">
+
+              {/* Address */}
+              <div className="flex items-start gap-3">
+
+                <MapPin
+                  size={21}
+                  className="
+                    text-orange-500
+                    mt-1
+                    flex-shrink-0
+                  "
+                />
+
+                <p className="text-gray-400 leading-6">
+                  छत्तीसगढ़, भारत
+                </p>
+
+              </div>
+
+              {/* Phone */}
+              <div className="flex items-center gap-3">
+
+                <Phone
+                  size={20}
+                  className="
+                    text-orange-500
+                    flex-shrink-0
+                  "
+                />
+
+                <a
+                  href="tel:+919999999999"
+                  className="
+                    text-gray-400
+                    hover:text-orange-400
+                    transition
+                  "
+                >
+                  +91 99999 99999
+                </a>
+
+              </div>
+
+              {/* Email */}
+              <div className="flex items-center gap-3">
+
+                <Mail
+                  size={20}
+                  className="
+                    text-orange-500
+                    flex-shrink-0
+                  "
+                />
+
+                <a
+                  href="mailto:info@yuvasarathi.org"
+                  className="
+                    text-gray-400
+                    hover:text-orange-400
+                    transition
+                    break-all
+                  "
+                >
+                  info@yuvasarathi.org
+                </a>
+
+              </div>
+
+            </div>
+
+            {/* Donate Button */}
             <a
-              href="#"
-              className="w-11 h-11 rounded-full bg-blue-600 flex justify-center items-center hover:scale-110 transition"
+              href="#donate"
+              className="
+                inline-flex
+                items-center
+                justify-center
+                mt-7
+                px-6
+                py-3
+                bg-orange-500
+                hover:bg-orange-600
+                rounded-lg
+                font-semibold
+                transition-all
+                duration-300
+                hover:-translate-y-1
+              "
             >
-              <FaFacebookF/>
-            </a>
-
-            <a
-              href="#"
-              className="w-11 h-11 rounded-full bg-pink-500 flex justify-center items-center hover:scale-110 transition"
-            >
-              <FaInstagram/>
-            </a>
-
-            <a
-              href="#"
-              className="w-11 h-11 rounded-full bg-sky-600 flex justify-center items-center hover:scale-110 transition"
-            >
-              <FaLinkedinIn/>
-            </a>
-
-            <a
-              href="#"
-              className="w-11 h-11 rounded-full bg-green-500 flex justify-center items-center hover:scale-110 transition"
-            >
-              <FaWhatsapp/>
+              सहयोग करें
             </a>
 
           </div>
@@ -168,31 +323,98 @@ function Footer() {
 
       </div>
 
-      <hr className="border-green-700 my-10"/>
+      {/* =========================
+          BOTTOM BAR
+      ========================== */}
+      <div className="border-t border-gray-800">
 
-      <div className="max-w-7xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div
+          className="
+            max-w-7xl
+            mx-auto
+            px-6
+            sm:px-8
+            lg:px-10
+            py-5
+          "
+        >
 
-        <p className="text-green-200 text-center">
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
+              items-center
+              justify-between
+              gap-4
+            "
+          >
 
-          © {new Date().getFullYear()} युवा सारथी सेवा संस्था छत्तीसगढ़ |
-          All Rights Reserved.
+            {/* Copyright */}
+            <p
+              className="
+                text-sm
+                text-gray-500
+                text-center
+                md:text-left
+              "
+            >
+              © {new Date().getFullYear()} युवा सारथी सेवा संस्था
+              छत्तीसगढ़। सभी अधिकार सुरक्षित।
+            </p>
 
-        </p>
+            {/* Made With */}
+            <p
+              className="
+                text-sm
+                text-gray-500
+                flex
+                items-center
+                gap-1
+              "
+            >
+              Made with
 
-        <p className="flex items-center gap-2 text-green-200">
+              <Heart
+                size={15}
+                className="
+                  text-red-500
+                  fill-red-500
+                "
+              />
 
-          Made with
+              for society
+            </p>
 
-          <FaHeart className="text-red-500"/>
+            {/* Back To Top */}
+            <button
+              onClick={scrollToTop}
+              aria-label="Back to top"
+              className="
+                w-10
+                h-10
+                rounded-full
+                bg-gray-800
+                hover:bg-orange-500
+                flex
+                items-center
+                justify-center
+                transition-all
+                duration-300
+                hover:-translate-y-1
+              "
+            >
+              <ArrowUp size={18} />
+            </button>
 
-          for Society
+          </div>
 
-        </p>
+        </div>
 
       </div>
 
     </footer>
   );
-}
+};
 
 export default Footer;

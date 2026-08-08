@@ -1,177 +1,333 @@
 import { useState } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
-import logo from "../assets/logo.png";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  Heart,
+  UserRound,
+} from "lucide-react";
 
-function Navbar() {
-  const [open, setOpen] = useState(false);
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
-  const menu = [
-    {
-      name: "मुख्य पृष्ठ",
-      link: "#home",
-    },
-    {
-      name: "हमारे बारे में",
-      link: "#about",
-    },
-    {
-      name: "सेवाएँ",
-      link: "#services",
-    },
-    {
-      name: "गैलरी",
-      link: "#gallery",
-    },
-    {
-      name: "हमसे जुड़ें",
-      link: "#volunteer",
-    },
-    {
-      name: "संपर्क",
-      link: "#contact",
-    },
-  ];
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+    setIsAboutOpen(false);
+  };
 
-  const handleMenuClick = () => {
-    setOpen(false);
+  const scrollToSection = (id) => {
+    closeMenu();
+
+    const section = document.getElementById(id);
+
+    if (section) {
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-xl shadow-md transition-all duration-300">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
 
-      <div className="max-w-7xl mx-auto px-5 py-3 flex justify-between items-center">
-
-        {/* =========================
-            LOGO
-        ========================= */}
-
-        <a
-          href="#home"
-          onClick={handleMenuClick}
-          className="flex items-center gap-3 group"
-        >
-          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-green-700 bg-white shadow-lg group-hover:scale-110 transition duration-300">
-
+          {/* ================= LOGO ================= */}
+          <button
+            onClick={() => scrollToSection("home")}
+            className="flex items-center gap-3 group"
+          >
             <img
-              src={logo}
+              src="/logo.png"
               alt="युवा सारथी सेवा संस्था"
-              className="w-full h-full object-contain p-1"
+              className="h-12 w-12 object-contain"
             />
 
-          </div>
+            <div className="text-left leading-tight">
+              <div className="text-lg sm:text-xl font-bold text-gray-900">
+                युवा सारथी
+              </div>
 
-          <div>
-            <h1 className="text-2xl font-bold">
-              <span className="text-green-700">
-                युवा
-              </span>{" "}
-              <span className="text-orange-500">
-                सारथी
-              </span>
-            </h1>
+              <div className="text-xs sm:text-sm text-orange-600 font-semibold">
+                सेवा संस्था छत्तीसगढ़
+              </div>
+            </div>
+          </button>
 
-            <p className="text-sm text-gray-600">
-              सेवा संस्था छत्तीसगढ़
-            </p>
-          </div>
-        </a>
+          {/* ================= DESKTOP NAV ================= */}
+          <div className="hidden lg:flex items-center gap-7">
 
-
-        {/* =========================
-            DESKTOP MENU
-        ========================= */}
-
-        <div className="hidden lg:flex items-center gap-7">
-
-          {menu.map((item, index) => (
-            <a
-              key={index}
-              href={item.link}
-              onClick={handleMenuClick}
-              className="relative text-gray-700 font-medium hover:text-green-700 transition duration-300 group"
+            <button
+              onClick={() => scrollToSection("home")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
             >
-              {item.name}
+              होम
+            </button>
 
-              <span className="absolute left-0 bottom-[-6px] h-[2px] w-0 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
-            </a>
-          ))}
+            <button
+              onClick={() => scrollToSection("about")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
+            >
+              हमारे बारे में
+            </button>
 
-
-          {/* DONATE */}
-
-          <a
-            href="#donate"
-            onClick={handleMenuClick}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-7 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition duration-300"
-          >
-            ❤️ दान करें
-          </a>
-
-        </div>
-
-
-        {/* =========================
-            MOBILE BUTTON
-        ========================= */}
-
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="lg:hidden text-2xl text-green-700"
-          aria-label="Menu"
-        >
-          {open ? <FaTimes /> : <FaBars />}
-        </button>
-
-      </div>
-
-
-      {/* =========================
-          MOBILE MENU
-      ========================= */}
-
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-500 ${
-          open
-            ? "max-h-[600px] opacity-100"
-            : "max-h-0 opacity-0"
-        }`}
-      >
-
-        <div className="bg-white border-t shadow-lg p-5">
-
-          <div className="flex flex-col gap-3">
-
-            {menu.map((item, index) => (
-              <a
-                key={index}
-                href={item.link}
-                onClick={handleMenuClick}
-                className="px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-green-50 hover:text-green-700 transition-all duration-300"
+            {/* ABOUT DROPDOWN */}
+            <div className="relative">
+              <button
+                onClick={() => setIsAboutOpen(!isAboutOpen)}
+                className="flex items-center gap-1 text-gray-700 hover:text-orange-600 font-medium transition"
               >
-                {item.name}
-              </a>
-            ))}
+                संस्था
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform ${
+                    isAboutOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
+              {isAboutOpen && (
+                <div className="absolute top-full left-0 mt-3 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-2">
 
-            {/* DONATE MOBILE */}
+                  <button
+                    onClick={() => scrollToSection("mission")}
+                    className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
+                  >
+                    हमारा मिशन
+                  </button>
 
-            <a
-              href="#donate"
-              onClick={handleMenuClick}
-              className="mt-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
+                  >
+                    हमारी सेवाएं
+                  </button>
+
+                  <button
+                    onClick={() => scrollToSection("team")}
+                    className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
+                  >
+                    हमारी टीम
+                  </button>
+
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => scrollToSection("services")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
             >
-              ❤️ दान करें
-            </a>
+              सेवाएं
+            </button>
+
+            {/* ================= EVENTS ================= */}
+            <button
+              onClick={() => scrollToSection("events")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
+            >
+              Events
+            </button>
+
+            <button
+              onClick={() => scrollToSection("gallery")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
+            >
+              गैलरी
+            </button>
+
+            <button
+              onClick={() => scrollToSection("faq")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
+            >
+              FAQ
+            </button>
+
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-gray-700 hover:text-orange-600 font-medium transition"
+            >
+              संपर्क
+            </button>
+
+            {/* DONATE BUTTON */}
+            <button
+              onClick={() => scrollToSection("donate")}
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md hover:shadow-lg"
+            >
+              <Heart size={17} fill="currentColor" />
+              सहयोग करें
+            </button>
 
           </div>
 
+          {/* ================= MOBILE BUTTON ================= */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? (
+              <X size={28} />
+            ) : (
+              <Menu size={28} />
+            )}
+          </button>
         </div>
-
       </div>
 
+      {/* ================= MOBILE MENU ================= */}
+      {isMenuOpen && (
+        <div className="lg:hidden bg-white border-t border-gray-100 shadow-lg">
+
+          <div className="px-5 py-4 space-y-1">
+
+            <button
+              onClick={() => scrollToSection("home")}
+              className="mobile-nav-item"
+            >
+              होम
+            </button>
+
+            <button
+              onClick={() => scrollToSection("about")}
+              className="mobile-nav-item"
+            >
+              हमारे बारे में
+            </button>
+
+            {/* MOBILE INSTITUTION */}
+            <div>
+              <button
+                onClick={() => setIsAboutOpen(!isAboutOpen)}
+                className="w-full flex items-center justify-between py-3 text-gray-700 font-medium"
+              >
+                संस्था
+
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform ${
+                    isAboutOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isAboutOpen && (
+                <div className="pl-4 pb-2 space-y-1">
+
+                  <button
+                    onClick={() => scrollToSection("mission")}
+                    className="mobile-sub-item"
+                  >
+                    हमारा मिशन
+                  </button>
+
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="mobile-sub-item"
+                  >
+                    हमारी सेवाएं
+                  </button>
+
+                  <button
+                    onClick={() => scrollToSection("team")}
+                    className="mobile-sub-item"
+                  >
+                    हमारी टीम
+                  </button>
+
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => scrollToSection("services")}
+              className="mobile-nav-item"
+            >
+              सेवाएं
+            </button>
+
+            {/* EVENTS */}
+            <button
+              onClick={() => scrollToSection("events")}
+              className="mobile-nav-item"
+            >
+              Events
+            </button>
+
+            <button
+              onClick={() => scrollToSection("gallery")}
+              className="mobile-nav-item"
+            >
+              गैलरी
+            </button>
+
+            <button
+              onClick={() => scrollToSection("faq")}
+              className="mobile-nav-item"
+            >
+              FAQ
+            </button>
+
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="mobile-nav-item"
+            >
+              संपर्क
+            </button>
+
+            <button
+              onClick={() => scrollToSection("volunteer")}
+              className="w-full flex items-center justify-center gap-2 mt-3 bg-gray-900 text-white py-3 rounded-xl font-semibold"
+            >
+              <UserRound size={18} />
+              Volunteer बनें
+            </button>
+
+            <button
+              onClick={() => scrollToSection("donate")}
+              className="w-full flex items-center justify-center gap-2 mt-2 bg-orange-600 text-white py-3 rounded-xl font-semibold"
+            >
+              <Heart size={18} fill="currentColor" />
+              सहयोग करें
+            </button>
+
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE MENU CSS */}
+      <style>{`
+        .mobile-nav-item {
+          width: 100%;
+          text-align: left;
+          padding: 12px 0;
+          color: #374151;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .mobile-nav-item:hover {
+          color: #ea580c;
+        }
+
+        .mobile-sub-item {
+          width: 100%;
+          text-align: left;
+          padding: 9px 0;
+          color: #6b7280;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+
+        .mobile-sub-item:hover {
+          color: #ea580c;
+        }
+      `}</style>
     </nav>
   );
-}
+};
 
 export default Navbar;
