@@ -77,7 +77,7 @@ const Footer = () => {
       href: "#faq",
     },
     {
-      name: "आगामी कार्यक्रम",
+      name: "कार्यक्रम",
       href: "#events",
     },
     {
