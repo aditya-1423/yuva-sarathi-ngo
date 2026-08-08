@@ -6,7 +6,9 @@ import {
   sendAdminResetLink,
 } from "../firebase/auth.js";
 
-import { createEvent } from "../firebase/events.js";
+import {
+  createEvent,
+} from "../firebase/events.js";
 
 import {
   addGalleryImages,
@@ -16,439 +18,786 @@ import {
 
 import "./AdminLogin.css";
 
-const ADMIN_EMAIL = "adityaverma1325@gmail.com";
+
+const ADMIN_EMAIL =
+  "adityaverma1325@gmail.com";
+
 
 function AdminLogin() {
-  // ==========================================
-  // LOGIN STATES
-  // ==========================================
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [user, setUser] = useState(null);
-
-  const [error, setError] = useState("");
-  const [resetMessage, setResetMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // ==========================================
-  // EVENT STATES
-  // ==========================================
-
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [eventLocation, setEventLocation] = useState("");
-  const [eventDescription, setEventDescription] = useState("");
-
-  const [eventImage, setEventImage] = useState(null);
-  const [eventLoading, setEventLoading] = useState(false);
-  const [eventMessage, setEventMessage] = useState("");
-
-  // ==========================================
-  // GALLERY STATES
-  // ==========================================
-
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [galleryLoading, setGalleryLoading] = useState(false);
-  const [imageCaption, setImageCaption] = useState("");
-  const [galleryMessage, setGalleryMessage] = useState("");
-
-  const [galleryImages, setGalleryImages] = useState([]);
-  const [deleteLoading, setDeleteLoading] = useState(null);
-
-  // ==========================================
+  // =====================================
   // LOGIN
-  // ==========================================
+  // =====================================
+
+  const [
+    email,
+    setEmail,
+  ] = useState("");
+
+
+  const [
+    password,
+    setPassword,
+  ] = useState("");
+
+
+  const [
+    user,
+    setUser,
+  ] = useState(null);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  const [
+    resetMessage,
+    setResetMessage,
+  ] = useState("");
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+
+  // =====================================
+  // EVENT STATES
+  // =====================================
+
+  const [
+    eventTitle,
+    setEventTitle,
+  ] = useState("");
+
+
+  const [
+    eventDate,
+    setEventDate,
+  ] = useState("");
+
+
+  const [
+    eventLocation,
+    setEventLocation,
+  ] = useState("");
+
+
+  const [
+    eventDescription,
+    setEventDescription,
+  ] = useState("");
+
+
+  const [
+    eventImage,
+    setEventImage,
+  ] = useState(null);
+
+
+  const [
+    eventLoading,
+    setEventLoading,
+  ] = useState(false);
+
+
+  const [
+    eventMessage,
+    setEventMessage,
+  ] = useState("");
+
+
+  // =====================================
+  // GALLERY
+  // =====================================
+
+  const [
+    selectedImages,
+    setSelectedImages,
+  ] = useState([]);
+
+
+  const [
+    galleryLoading,
+    setGalleryLoading,
+  ] = useState(false);
+
+
+  const [
+    imageCaption,
+    setImageCaption,
+  ] = useState("");
+
+
+  const [
+    galleryMessage,
+    setGalleryMessage,
+  ] = useState("");
+
+
+  const [
+    galleryImages,
+    setGalleryImages,
+  ] = useState([]);
+
+
+  const [
+    deleteLoading,
+    setDeleteLoading,
+  ] = useState(null);
+
+
+  // =====================================
+  // LOGIN
+  // =====================================
 
   async function handleLogin(event) {
+
     event.preventDefault();
 
     setError("");
     setResetMessage("");
 
+
     if (
       email.trim().toLowerCase() !==
       ADMIN_EMAIL.toLowerCase()
     ) {
+
       setError(
         "केवल अधिकृत एडमिन ही लॉगिन कर सकता है।"
       );
+
       return;
     }
 
+
     try {
+
       setLoading(true);
 
-      const result = await adminLogin(
-        email.trim(),
-        password
-      );
+
+      const result =
+        await adminLogin(
+          email.trim(),
+          password
+        );
+
 
       try {
-        const images = await getGalleryImages();
-        setGalleryImages(images);
-      } catch (galleryError) {
+
+        const images =
+          await getGalleryImages();
+
+        setGalleryImages(
+          images
+        );
+
+      } catch (
+        galleryError
+      ) {
+
         console.error(
           "Gallery load error:",
           galleryError
         );
+
       }
 
-      setUser(result.user);
-    } catch (loginError) {
-      console.error("Login error:", loginError);
 
-      setError("ईमेल या पासवर्ड गलत है।");
+      setUser(
+        result.user
+      );
+
+    } catch (
+      loginError
+    ) {
+
+      console.error(
+        "Login error:",
+        loginError
+      );
+
+
+      setError(
+        "ईमेल या पासवर्ड गलत है।"
+      );
+
     } finally {
+
       setLoading(false);
+
     }
+
   }
 
-  // ==========================================
+
+  // =====================================
   // PASSWORD RESET
-  // ==========================================
+  // =====================================
 
   async function handlePasswordReset() {
-    const resetEmail = email.trim().toLowerCase();
+
+    const resetEmail =
+      email.trim().toLowerCase();
+
 
     if (
       resetEmail !==
       ADMIN_EMAIL.toLowerCase()
     ) {
+
       setError(
         "पहले अधिकृत एडमिन ईमेल डालें।"
       );
+
       return;
     }
 
+
     try {
+
       setError("");
       setResetMessage("");
 
-      await sendAdminResetLink(resetEmail);
+
+      await sendAdminResetLink(
+        resetEmail
+      );
+
 
       setResetMessage(
         "पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है।"
       );
+
     } catch (err) {
+
       console.error(
         "Password reset error:",
         err
       );
 
+
       setError(
-        `रीसेट में समस्या आई: ${err.code || "Unknown error"}`
+        `रीसेट में समस्या आई: ${
+          err.code ||
+          "Unknown error"
+        }`
       );
+
     }
+
   }
 
-  // ==========================================
-  // EVENT COVER IMAGE SELECT
-  // ==========================================
 
-  function handleEventImageSelect(event) {
+  // =====================================
+  // EVENT IMAGE SELECT
+  // NO CROP
+  // =====================================
+
+  function handleEventImageSelect(
+    event
+  ) {
+
     const file =
-      event.target.files?.[0] || null;
+      event.target.files?.[0] ||
+      null;
 
-    setEventImage(file);
+
     setEventMessage("");
 
+
     if (!file) {
+
+      setEventImage(null);
+
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+
       setEventImage(null);
 
       setEventMessage(
         "कृपया केवल तस्वीर चुनें।"
       );
 
-      event.target.value = "";
+      event.target.value =
+        "";
+
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) {
+
+    if (
+      file.size >
+      15 * 1024 * 1024
+    ) {
+
       setEventImage(null);
 
       setEventMessage(
         "Cover image 15 MB से छोटी होनी चाहिए।"
       );
 
-      event.target.value = "";
+      event.target.value =
+        "";
+
       return;
     }
+
+
+    // ORIGINAL IMAGE
+    setEventImage(file);
+
 
     setEventMessage(
       `Cover image चुनी गई: ${file.name}`
     );
+
   }
 
-  // ==========================================
-  // CREATE EVENT
-  // ==========================================
 
-  async function handleCreateEvent(event) {
+  // =====================================
+  // CREATE EVENT
+  // =====================================
+
+  async function handleCreateEvent(
+    event
+  ) {
+
     event.preventDefault();
 
     setEventMessage("");
 
+
     if (!eventImage) {
+
       setEventMessage(
         "कृपया कार्यक्रम की Cover Image चुनें।"
       );
+
       return;
     }
 
+
     try {
+
       setEventLoading(true);
 
+
       await createEvent({
-        title: eventTitle.trim(),
-        date: eventDate,
-        location: eventLocation.trim(),
-        description: eventDescription.trim(),
-        imageFile: eventImage,
+
+        title:
+          eventTitle.trim(),
+
+        date:
+          eventDate,
+
+        location:
+          eventLocation.trim(),
+
+        description:
+          eventDescription.trim(),
+
+        imageFile:
+          eventImage,
+
       });
 
-      // Reset form
+
+      // RESET
+
       setEventTitle("");
+
       setEventDate("");
+
       setEventLocation("");
+
       setEventDescription("");
+
       setEventImage(null);
 
-      // File input reset
+
       event.target.reset();
+
 
       setEventMessage(
         "कार्यक्रम और Cover Image सफलतापूर्वक जोड़ दिए गए! 🎉"
       );
+
     } catch (error) {
+
       console.error(
         "Create event error:",
         error
       );
 
+
       setEventMessage(
         error.message ||
           "कार्यक्रम नहीं जोड़ा जा सका। फिर से कोशिश करें।"
       );
+
     } finally {
+
       setEventLoading(false);
+
     }
+
   }
 
-  // ==========================================
+
+  // =====================================
   // LOAD GALLERY
-  // ==========================================
+  // =====================================
 
   async function loadGalleryImages() {
+
     try {
+
       const images =
         await getGalleryImages();
 
-      setGalleryImages(images);
+
+      setGalleryImages(
+        images
+      );
+
     } catch (error) {
+
       console.error(
         "Gallery load error:",
         error
       );
 
+
       setGalleryMessage(
         "गैलरी की तस्वीरें लोड नहीं हो सकीं।"
       );
+
     }
+
   }
 
-  // ==========================================
-  // MULTIPLE IMAGE SELECT
-  // ==========================================
 
-  function handleImageSelect(event) {
-    const files = Array.from(
-      event.target.files || []
+  // =====================================
+  // SELECT GALLERY IMAGES
+  // =====================================
+
+  function handleImageSelect(
+    event
+  ) {
+
+    const files =
+      Array.from(
+        event.target.files ||
+          []
+      );
+
+
+    setSelectedImages(
+      files
     );
 
-    setSelectedImages(files);
     setGalleryMessage("");
 
-    if (files.length === 0) {
+
+    if (
+      files.length ===
+      0
+    ) {
+
       return;
+
     }
 
-    // Check every image
-    for (const file of files) {
-      if (!file.type.startsWith("image/")) {
-        setSelectedImages([]);
+
+    for (
+      const file of files
+    ) {
+
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+
+        setSelectedImages(
+          []
+        );
+
 
         setGalleryMessage(
           `${file.name} तस्वीर नहीं है।`
         );
 
-        event.target.value = "";
+
+        event.target.value =
+          "";
+
+
         return;
+
       }
 
-      if (file.size > 15 * 1024 * 1024) {
-        setSelectedImages([]);
+
+      if (
+        file.size >
+        15 * 1024 * 1024
+      ) {
+
+        setSelectedImages(
+          []
+        );
+
 
         setGalleryMessage(
           `${file.name} 15 MB से बड़ी है।`
         );
 
-        event.target.value = "";
+
+        event.target.value =
+          "";
+
+
         return;
+
       }
+
     }
+
 
     setGalleryMessage(
       `${files.length} तस्वीरें चुनी गई हैं।`
     );
+
   }
 
-  // ==========================================
-  // MULTIPLE GALLERY IMAGE UPLOAD
-  // ==========================================
 
-  async function handleAddGalleryImages(event) {
+  // =====================================
+  // UPLOAD GALLERY
+  // =====================================
+
+  async function handleAddGalleryImages(
+    event
+  ) {
+
     event.preventDefault();
 
     setGalleryMessage("");
 
-    if (selectedImages.length === 0) {
+
+    if (
+      selectedImages.length ===
+      0
+    ) {
+
       setGalleryMessage(
         "पहले तस्वीरें चुनें।"
       );
+
       return;
     }
 
+
     try {
+
       setGalleryLoading(true);
+
 
       const totalImages =
         selectedImages.length;
+
 
       await addGalleryImages(
         selectedImages,
         imageCaption
       );
 
-      // Reset
+
       setSelectedImages([]);
+
       setImageCaption("");
+
 
       event.target.reset();
 
-      // Refresh gallery
+
       await loadGalleryImages();
+
 
       setGalleryMessage(
         `${totalImages} तस्वीरें सफलतापूर्वक अपलोड हो गईं! 🎉`
       );
+
     } catch (error) {
+
       console.error(
         "Gallery upload error:",
         error
       );
 
+
       setGalleryMessage(
         error.message ||
           "तस्वीरें अपलोड नहीं हो सकीं।"
       );
+
     } finally {
+
       setGalleryLoading(false);
+
     }
+
   }
 
-  // ==========================================
+
+  // =====================================
   // DELETE GALLERY IMAGE
-  // ==========================================
+  // =====================================
 
   async function handleDeleteGalleryImage(
     imageId
   ) {
+
     const confirmDelete =
       window.confirm(
         "क्या आप यह तस्वीर हटाना चाहते हैं?"
       );
 
+
     if (!confirmDelete) {
+
       return;
+
     }
 
+
     try {
-      setDeleteLoading(imageId);
+
+      setDeleteLoading(
+        imageId
+      );
+
       setGalleryMessage("");
 
-      await deleteGalleryImage(imageId);
 
-      setGalleryImages((previous) =>
-        previous.filter(
-          (image) =>
-            image.id !== imageId
-        )
+      await deleteGalleryImage(
+        imageId
       );
+
+
+      setGalleryImages(
+        (previous) =>
+          previous.filter(
+            (image) =>
+              image.id !==
+              imageId
+          )
+      );
+
 
       setGalleryMessage(
         "तस्वीर सफलतापूर्वक हटा दी गई।"
       );
+
     } catch (error) {
+
       console.error(
         "Delete gallery image error:",
         error
       );
 
+
       setGalleryMessage(
         error.message ||
           "तस्वीर हटाई नहीं जा सकी।"
       );
+
     } finally {
-      setDeleteLoading(null);
+
+      setDeleteLoading(
+        null
+      );
+
     }
+
   }
 
-  // ==========================================
+
+  // =====================================
   // LOGOUT
-  // ==========================================
+  // =====================================
 
   async function handleLogout() {
+
     try {
+
       await adminLogout();
+
     } catch (error) {
+
       console.error(
         "Logout error:",
         error
       );
+
     }
 
+
     setUser(null);
+
     setGalleryImages([]);
+
     setSelectedImages([]);
 
-    window.location.hash = "";
+    setEventImage(null);
+
+
+    window.location.hash =
+      "";
+
   }
 
-  // ==========================================
+
+  // =====================================
   // ADMIN DASHBOARD
-  // ==========================================
+  // =====================================
 
   if (user) {
+
     return (
+
       <main className="admin-page">
+
         <section className="admin-card">
+
 
           <p className="admin-label">
             YUVA SARATHI NGO
           </p>
 
+
           <h1>
             एडमिन डैशबोर्ड
           </h1>
 
+
           <p>
-            स्वागत है, {user.email}
+            स्वागत है,{" "}
+            {user.email}
           </p>
+
 
           {/* =================================
               EVENT
@@ -458,17 +807,23 @@ function AdminLogin() {
             नया कार्यक्रम जोड़ें
           </h2>
 
+
           <form
             className="event-form"
-            onSubmit={handleCreateEvent}
+            onSubmit={
+              handleCreateEvent
+            }
           >
 
-            {/* EVENT TITLE */}
+
+            {/* TITLE */}
 
             <input
               type="text"
               placeholder="कार्यक्रम का नाम"
-              value={eventTitle}
+              value={
+                eventTitle
+              }
               onChange={(event) =>
                 setEventTitle(
                   event.target.value
@@ -477,11 +832,14 @@ function AdminLogin() {
               required
             />
 
-            {/* EVENT DATE */}
+
+            {/* DATE */}
 
             <input
               type="date"
-              value={eventDate}
+              value={
+                eventDate
+              }
               onChange={(event) =>
                 setEventDate(
                   event.target.value
@@ -490,12 +848,15 @@ function AdminLogin() {
               required
             />
 
+
             {/* LOCATION */}
 
             <input
               type="text"
               placeholder="कार्यक्रम का स्थान"
-              value={eventLocation}
+              value={
+                eventLocation
+              }
               onChange={(event) =>
                 setEventLocation(
                   event.target.value
@@ -504,11 +865,14 @@ function AdminLogin() {
               required
             />
 
+
             {/* DESCRIPTION */}
 
             <textarea
               placeholder="कार्यक्रम का विवरण"
-              value={eventDescription}
+              value={
+                eventDescription
+              }
               onChange={(event) =>
                 setEventDescription(
                   event.target.value
@@ -517,11 +881,13 @@ function AdminLogin() {
               required
             />
 
+
             {/* COVER IMAGE */}
 
             <label>
               कार्यक्रम की Cover Image
             </label>
+
 
             <input
               type="file"
@@ -532,33 +898,51 @@ function AdminLogin() {
               required
             />
 
+
             {eventImage && (
+
               <p>
+
                 चुनी गई image:{" "}
+
                 <strong>
                   {eventImage.name}
                 </strong>
+
               </p>
+
             )}
+
 
             {/* SUBMIT */}
 
             <button
               type="submit"
-              disabled={eventLoading}
+              disabled={
+                eventLoading
+              }
             >
+
               {eventLoading
                 ? "कार्यक्रम अपलोड हो रहा है..."
                 : "कार्यक्रम जोड़ें"}
+
             </button>
+
 
           </form>
 
+
           {eventMessage && (
+
             <p className="event-message">
+
               {eventMessage}
+
             </p>
+
           )}
+
 
           {/* =================================
               GALLERY
@@ -568,6 +952,7 @@ function AdminLogin() {
             गैलरी में तस्वीरें जोड़ें
           </h2>
 
+
           <form
             className="event-form"
             onSubmit={
@@ -575,7 +960,6 @@ function AdminLogin() {
             }
           >
 
-            {/* MULTIPLE FILE SELECT */}
 
             <input
               type="file"
@@ -587,22 +971,30 @@ function AdminLogin() {
               required
             />
 
+
             {selectedImages.length >
               0 && (
+
               <p>
+
                 <strong>
-                  {selectedImages.length}
+                  {
+                    selectedImages.length
+                  }
                 </strong>{" "}
                 तस्वीरें चुनी गई हैं।
+
               </p>
+
             )}
 
-            {/* CAPTION */}
 
             <input
               type="text"
               placeholder="तस्वीर का विवरण"
-              value={imageCaption}
+              value={
+                imageCaption
+              }
               onChange={(event) =>
                 setImageCaption(
                   event.target.value
@@ -610,7 +1002,6 @@ function AdminLogin() {
               }
             />
 
-            {/* UPLOAD */}
 
             <button
               type="submit"
@@ -618,18 +1009,27 @@ function AdminLogin() {
                 galleryLoading
               }
             >
+
               {galleryLoading
                 ? "तस्वीरें अपलोड हो रही हैं..."
                 : "तस्वीरें जोड़ें"}
+
             </button>
+
 
           </form>
 
+
           {galleryMessage && (
+
             <p className="event-message">
+
               {galleryMessage}
+
             </p>
+
           )}
+
 
           {/* =================================
               GALLERY LIST
@@ -639,20 +1039,28 @@ function AdminLogin() {
             गैलरी की तस्वीरें
           </h2>
 
+
           <div className="admin-gallery-list">
 
             {galleryImages.length ===
             0 ? (
+
               <p>
                 अभी कोई तस्वीर नहीं है।
               </p>
+
             ) : (
+
               galleryImages.map(
                 (image) => (
+
                   <div
-                    key={image.id}
+                    key={
+                      image.id
+                    }
                     className="admin-gallery-item"
                   >
+
 
                     <img
                       src={
@@ -664,12 +1072,16 @@ function AdminLogin() {
                       }
                     />
 
+
                     <div className="admin-gallery-info">
 
                       <p>
+
                         {image.caption ||
                           "संस्था की गतिविधि"}
+
                       </p>
+
 
                       <button
                         type="button"
@@ -684,24 +1096,27 @@ function AdminLogin() {
                           image.id
                         }
                       >
+
                         {deleteLoading ===
                         image.id
                           ? "हटा रहे हैं..."
                           : "🗑️ तस्वीर हटाएँ"}
+
                       </button>
 
                     </div>
 
                   </div>
+
                 )
               )
+
             )}
 
           </div>
 
-          {/* =================================
-              LOGOUT
-          ================================= */}
+
+          {/* LOGOUT */}
 
           <button
             type="button"
@@ -712,35 +1127,48 @@ function AdminLogin() {
             लॉग आउट
           </button>
 
+
         </section>
+
       </main>
+
     );
+
   }
 
-  // ==========================================
-  // ADMIN LOGIN
-  // ==========================================
+
+  // =====================================
+  // LOGIN PAGE
+  // =====================================
 
   return (
+
     <main className="admin-page">
+
 
       <form
         className="admin-card"
-        onSubmit={handleLogin}
+        onSubmit={
+          handleLogin
+        }
       >
+
 
         <p className="admin-label">
           YUVA SARATHI NGO
         </p>
 
+
         <h1>
           एडमिन लॉगिन
         </h1>
+
 
         <p className="admin-subtitle">
           वेबसाइट को मैनेज करने के लिए
           लॉगिन करें।
         </p>
+
 
         {/* EMAIL */}
 
@@ -748,10 +1176,13 @@ function AdminLogin() {
           ईमेल
         </label>
 
+
         <input
           type="email"
           placeholder="एडमिन ईमेल"
-          value={email}
+          value={
+            email
+          }
           onChange={(event) =>
             setEmail(
               event.target.value
@@ -760,16 +1191,20 @@ function AdminLogin() {
           required
         />
 
+
         {/* PASSWORD */}
 
         <label>
           पासवर्ड
         </label>
 
+
         <input
           type="password"
           placeholder="पासवर्ड डालें"
-          value={password}
+          value={
+            password
+          }
           onChange={(event) =>
             setPassword(
               event.target.value
@@ -778,24 +1213,35 @@ function AdminLogin() {
           required
         />
 
+
         {/* ERROR */}
 
         {error && (
+
           <p className="admin-error">
+
             {error}
+
           </p>
+
         )}
+
 
         {/* LOGIN */}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={
+            loading
+          }
         >
+
           {loading
             ? "लॉगिन हो रहा है..."
             : "लॉगिन करें"}
+
         </button>
+
 
         {/* RESET */}
 
@@ -806,15 +1252,23 @@ function AdminLogin() {
             handlePasswordReset
           }
         >
+
           पासवर्ड भूल गए?
           रीसेट करें
+
         </button>
 
+
         {resetMessage && (
+
           <p className="reset-message">
+
             {resetMessage}
+
           </p>
+
         )}
+
 
         {/* BACK */}
 
@@ -822,13 +1276,19 @@ function AdminLogin() {
           className="back-home"
           href="#"
         >
+
           ← वेबसाइट पर वापस जाएँ
+
         </a>
+
 
       </form>
 
     </main>
+
   );
+
 }
+
 
 export default AdminLogin;

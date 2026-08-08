@@ -9,12 +9,16 @@ import {
 
 import { db } from "./firebase.js";
 
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const CLOUD_NAME =
+  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
-// ==============================
+const UPLOAD_PRESET =
+  import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+
+// =====================================
 // CREATE EVENT
-// ==============================
+// =====================================
 
 export async function createEvent({
   title,
@@ -23,37 +27,72 @@ export async function createEvent({
   description,
   imageFile,
 }) {
-  if (!title || !date || !location || !description) {
-    throw new Error("सभी जानकारी भरना जरूरी है।");
+  if (
+    !title ||
+    !date ||
+    !location ||
+    !description
+  ) {
+    throw new Error(
+      "सभी जानकारी भरना जरूरी है।"
+    );
   }
 
   let imageUrl = "";
 
-  // Cover image upload
+  // =====================================
+  // IMAGE UPLOAD
+  // Original image — NO CROP
+  // =====================================
+
   if (imageFile) {
-    if (!imageFile.type.startsWith("image/")) {
-      throw new Error("कृपया केवल तस्वीर चुनें।");
+
+    if (
+      !imageFile.type.startsWith("image/")
+    ) {
+      throw new Error(
+        "कृपया केवल तस्वीर चुनें।"
+      );
     }
 
-    if (imageFile.size > 15 * 1024 * 1024) {
-      throw new Error("Cover image 15 MB से छोटी होनी चाहिए।");
+    if (
+      imageFile.size >
+      15 * 1024 * 1024
+    ) {
+      throw new Error(
+        "Cover image 15 MB से छोटी होनी चाहिए।"
+      );
     }
 
-    const formData = new FormData();
+    const formData =
+      new FormData();
 
-    formData.append("file", imageFile);
-    formData.append("upload_preset", UPLOAD_PRESET);
-    formData.append("folder", "yuva-sarathi-events");
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
+    formData.append(
+      "file",
+      imageFile
     );
 
-    const uploadedImage = await response.json();
+    formData.append(
+      "upload_preset",
+      UPLOAD_PRESET
+    );
+
+    formData.append(
+      "folder",
+      "yuva-sarathi-events"
+    );
+
+    const response =
+      await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+    const uploadedImage =
+      await response.json();
 
     if (!response.ok) {
       throw new Error(
@@ -62,45 +101,68 @@ export async function createEvent({
       );
     }
 
-    imageUrl = uploadedImage.secure_url;
+    imageUrl =
+      uploadedImage.secure_url;
   }
 
-  // Firestore
-  return addDoc(collection(db, "events"), {
-    title,
-    date,
-    location,
-    description,
-    image: imageUrl,
-    createdAt: serverTimestamp(),
-  });
+  // =====================================
+  // FIRESTORE
+  // =====================================
+
+  return addDoc(
+    collection(db, "events"),
+    {
+      title,
+      date,
+      location,
+      description,
+      image: imageUrl,
+      createdAt:
+        serverTimestamp(),
+    }
+  );
 }
 
-// ==============================
+
+// =====================================
 // GET EVENTS
-// ==============================
+// =====================================
 
 export async function getEvents() {
-  const snapshot = await getDocs(
-    collection(db, "events")
-  );
 
-  return snapshot.docs.map((item) => ({
-    id: item.id,
-    ...item.data(),
-  }));
+  const snapshot =
+    await getDocs(
+      collection(db, "events")
+    );
+
+  return snapshot.docs.map(
+    (item) => ({
+      id: item.id,
+      ...item.data(),
+    })
+  );
 }
 
-// ==============================
-// DELETE EVENT
-// ==============================
 
-export async function deleteEvent(eventId) {
+// =====================================
+// DELETE EVENT
+// =====================================
+
+export async function deleteEvent(
+  eventId
+) {
+
   if (!eventId) {
-    throw new Error("Event ID नहीं मिली।");
+    throw new Error(
+      "Event ID नहीं मिली।"
+    );
   }
 
   await deleteDoc(
-    doc(db, "events", eventId)
+    doc(
+      db,
+      "events",
+      eventId
+    )
   );
 }
