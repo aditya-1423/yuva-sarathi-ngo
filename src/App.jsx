@@ -5,24 +5,23 @@ import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
 import Services from "./components/Services";
-import Counter from "./components/Counter";
-import Mission from "./components/Mission";
 import Gallery from "./components/Gallery";
-import Volunteer from "./components/Volunteer";
-import Donate from "./components/Donate";
-import Contact from "./components/Contact";
-import Footer from "./components/Footer";
 import Events from "./components/Events";
 import Team from "./components/Team";
+import Volunteer from "./components/Volunteer";
 import FAQ from "./components/FAQ";
+import Donate from "./components/Donate";
+import Contact from "./components/Contact";
+
+import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
 
 import AdminLogin from "./pages/AdminLogin";
 
 
-// ============================================
+// ==========================================
 // VALID WEBSITE SECTIONS
-// ============================================
+// ==========================================
 
 const validSections = [
   "home",
@@ -32,39 +31,32 @@ const validSections = [
   "events",
   "team",
   "volunteer",
+  "faq",
   "donate",
   "contact",
 ];
 
 
-// ============================================
+// ==========================================
 // APP
-// ============================================
+// ==========================================
 
 function App() {
 
   const [currentSection, setCurrentSection] =
-    useState(() => {
+    useState(
+      window.location.hash.replace("#", "") || "home"
+    );
 
-      const hash =
-        window.location.hash.replace("#", "");
-
-      if (hash === "admin-login") {
-        return "admin-login";
-      }
-
-      if (validSections.includes(hash)) {
-        return hash;
-      }
-
-      // Default landing page
-      return "home";
-    });
+  const [showAdminLogin, setShowAdminLogin] =
+    useState(
+      window.location.hash === "#admin-login"
+    );
 
 
-  // ============================================
+  // ==========================================
   // HASH CHANGE
-  // ============================================
+  // ==========================================
 
   useEffect(() => {
 
@@ -73,21 +65,37 @@ function App() {
       const hash =
         window.location.hash.replace("#", "");
 
-
+      // ADMIN LOGIN
       if (hash === "admin-login") {
-        setCurrentSection("admin-login");
+
+        setShowAdminLogin(true);
         return;
+
+      }
+
+      setShowAdminLogin(false);
+
+
+      // DEFAULT HOME
+      if (!hash) {
+
+        setCurrentSection("home");
+        return;
+
       }
 
 
+      // VALID SECTION
       if (validSections.includes(hash)) {
+
         setCurrentSection(hash);
-        return;
+
+      } else {
+
+        setCurrentSection("home");
+
       }
 
-
-      // Empty / unknown hash
-      setCurrentSection("home");
     };
 
 
@@ -95,6 +103,9 @@ function App() {
       "hashchange",
       handleHashChange
     );
+
+
+    handleHashChange();
 
 
     return () => {
@@ -109,42 +120,32 @@ function App() {
   }, []);
 
 
-  // ============================================
-  // PAGE TOP SCROLL
-  // ============================================
+  // ==========================================
+  // ADMIN LOGIN PAGE
+  // ==========================================
 
-  useEffect(() => {
+  if (showAdminLogin) {
 
-    window.scrollTo({
-      top: 0,
-      behavior: "instant",
-    });
-
-  }, [currentSection]);
-
-
-  // ============================================
-  // ADMIN LOGIN
-  // ============================================
-
-  if (currentSection === "admin-login") {
     return <AdminLogin />;
+
   }
 
 
-  // ============================================
-  // RENDER SECTION
-  // ============================================
+  // ==========================================
+  // RENDER SELECTED SECTION
+  // ==========================================
 
-  function renderSection() {
+  const renderSection = () => {
 
     switch (currentSection) {
 
-      // ========================================
+
+      // ======================================
       // HOME
-      // ========================================
+      // ======================================
 
       case "home":
+
         return (
           <>
             <Hero />
@@ -153,110 +154,131 @@ function App() {
         );
 
 
-      // ========================================
+      // ======================================
       // ABOUT
-      // ========================================
+      // ======================================
 
       case "about":
+
         return (
           <About />
         );
 
 
-      // ========================================
+      // ======================================
       // SERVICES
-      // ========================================
+      // ======================================
 
       case "services":
+
         return (
           <Services />
         );
 
 
-      // ========================================
+      // ======================================
       // GALLERY
-      // ========================================
+      // ======================================
 
       case "gallery":
+
         return (
           <Gallery />
         );
 
 
-      // ========================================
+      // ======================================
       // EVENTS
-      // ========================================
+      // ======================================
 
       case "events":
+
         return (
           <Events />
         );
 
 
-      // ========================================
+      // ======================================
       // TEAM
-      // ========================================
+      // ======================================
 
       case "team":
+
         return (
           <Team />
         );
 
 
-      // ========================================
-      // VOLUNTEER + FAQ
-      // ========================================
+      // ======================================
+      // JOIN US
+      // ======================================
+      // JOIN US KE NICHE FAQ BHI DIKHEGA
 
       case "volunteer":
+
         return (
           <>
             <Volunteer />
-
-            {/* FAQ directly below Join Us */}
 
             <FAQ />
           </>
         );
 
 
-      // ========================================
+      // ======================================
+      // FAQ
+      // ======================================
+
+      case "faq":
+
+        return (
+          <FAQ />
+        );
+
+
+      // ======================================
       // DONATE
-      // ========================================
+      // ======================================
 
       case "donate":
+
         return (
           <Donate />
         );
 
 
-      // ========================================
+      // ======================================
       // CONTACT
-      // ========================================
+      // ======================================
 
       case "contact":
+
         return (
           <Contact />
         );
 
 
-      // ========================================
-      // DEFAULT
-      // ========================================
+      // ======================================
+      // FALLBACK
+      // ======================================
 
       default:
+
         return (
           <>
             <Hero />
             <About />
           </>
         );
+
     }
-  }
+
+  };
 
 
-  // ============================================
+  // ==========================================
   // MAIN WEBSITE
-  // ============================================
+  // ==========================================
 
   return (
     <>
@@ -266,16 +288,16 @@ function App() {
       <Navbar />
 
 
-      {/* MAIN SECTION */}
+      {/* MAIN CONTENT */}
 
-      <main className="pt-0">
+      <main>
 
         {renderSection()}
 
       </main>
 
 
-      {/* FOOTER */}
+      {/* FOOTER ALWAYS VISIBLE */}
 
       <Footer />
 
@@ -285,7 +307,7 @@ function App() {
       <WhatsAppButton />
 
 
-      {/* ADMIN */}
+      {/* ADMIN ACCESS */}
 
       <a
         className="admin-access-button"
@@ -296,6 +318,7 @@ function App() {
 
     </>
   );
+
 }
 
 
