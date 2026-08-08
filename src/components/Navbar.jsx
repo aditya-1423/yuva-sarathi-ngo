@@ -135,7 +135,7 @@ const Navbar = () => {
 
                 <div className="absolute top-full left-0 mt-3 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-2">
 
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() =>
                       openSection("about")
@@ -143,10 +143,10 @@ const Navbar = () => {
                     className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
                   >
                     हमारे बारे में
-                  </button>
+                  </button> */}
 
 
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() =>
                       openSection("services")
@@ -154,7 +154,7 @@ const Navbar = () => {
                     className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
                   >
                     हमारी सेवाएं
-                  </button>
+                  </button> */}
 
 
                   <button
@@ -358,7 +358,7 @@ const Navbar = () => {
 
                 <div className="pl-4 pb-2 space-y-1">
 
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() =>
                       openSection("about")
@@ -366,9 +366,9 @@ const Navbar = () => {
                     className="mobile-sub-item"
                   >
                     हमारे बारे में
-                  </button>
+                  </button> */}
 
-
+{/* 
                   <button
                     type="button"
                     onClick={() =>
@@ -377,7 +377,7 @@ const Navbar = () => {
                     className="mobile-sub-item"
                   >
                     हमारी सेवाएं
-                  </button>
+                  </button> */}
 
 
                   <button
@@ -440,7 +440,7 @@ const Navbar = () => {
 
             {/* FAQ */}
 
-            <button
+            {/* <button
               type="button"
               onClick={() =>
                 openSection("faq")
@@ -448,7 +448,7 @@ const Navbar = () => {
               className="mobile-nav-item"
             >
               FAQ
-            </button>
+            </button> */}
 
 
             {/* CONTACT */}
