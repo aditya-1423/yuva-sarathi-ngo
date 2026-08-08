@@ -1,609 +1,983 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 import {
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaTimes,
-} from "react-icons/fa";
+  CalendarDays,
+  MapPin,
+  Loader2,
+  ChevronRight,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 
 import {
   collection,
-  getDocs,
+  onSnapshot,
   orderBy,
   query,
 } from "firebase/firestore";
 
-import { db } from "../firebase/firebase.js";
+import { db } from "../firebase/firebase";
 
+const Events = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-// =====================================
-// DEFAULT EVENTS
-// =====================================
-
-const defaultEvents = [
-
-  {
-    id: "blood-camp",
-
-    title: "रक्तदान शिविर",
-
-    date: "15 अगस्त 2026",
-
-    location: "कवर्धा",
-
-    description:
-      "रक्तदान करके जरूरतमंद लोगों की सहायता करें।",
-
-    image:
-      "https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=1200",
-  },
-
-
-  {
-    id: "tree-plantation",
-
-    title: "वृक्षारोपण अभियान",
-
-    date: "20 अगस्त 2026",
-
-    location: "भिलाई",
-
-    description:
-      "हरियाली और स्वच्छ पर्यावरण के लिए वृक्षारोपण अभियान।",
-
-    image:
-      "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=1200",
-  },
-
-
-  {
-    id: "education-campaign",
-
-    title: "शिक्षा अभियान",
-
-    date: "25 अगस्त 2026",
-
-    location: "राजनांदगांव",
-
-    description:
-      "बच्चों की शिक्षा के लिए जागरूकता और सहायता अभियान।",
-
-    image:
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200",
-  },
-
-];
-
-
-// =====================================
-// DATE FORMAT
-// =====================================
-
-function formatEventDate(date) {
-
-  if (!date) {
-    return "";
-  }
-
-  if (
-    typeof date !== "string" ||
-    !date.includes("-")
-  ) {
-    return date;
-  }
-
-  return new Intl.DateTimeFormat(
-    "hi-IN",
-    {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  ).format(
-    new Date(
-      `${date}T00:00:00`
-    )
-  );
-}
-
-
-// =====================================
-// EVENTS COMPONENT
-// =====================================
-
-function Events() {
-
-  const [
-    events,
-    setEvents,
-  ] = useState(
-    defaultEvents
-  );
-
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
-
-
-  const [
-    selectedEvent,
-    setSelectedEvent,
-  ] = useState(null);
-
-
-  // =====================================
-  // LOAD EVENTS
-  // =====================================
+  // ==================================================
+  // FIREBASE EVENTS
+  // ==================================================
 
   useEffect(() => {
+    const eventsRef = collection(db, "events");
 
-    async function loadEvents() {
-
-      try {
-
-        const eventsQuery =
-          query(
-            collection(
-              db,
-              "events"
-            ),
-
-            orderBy(
-              "createdAt",
-              "desc"
-            )
-          );
-
-
-        const snapshot =
-          await getDocs(
-            eventsQuery
-          );
-
-
-        const firebaseEvents =
-          snapshot.docs.map(
-            (document) => {
-
-              const data =
-                document.data();
-
-
-              return {
-
-                id:
-                  document.id,
-
-                ...data,
-
-                image:
-                  data.image ||
-                  "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1200",
-
-              };
-
-            }
-          );
-
-
-        setEvents([
-          ...firebaseEvents,
-          ...defaultEvents,
-        ]);
-
-      }
-
-      catch (error) {
-
-        console.error(
-          "Events load error:",
-          error
-        );
-
-
-        setEvents(
-          defaultEvents
-        );
-
-      }
-
-      finally {
-
-        setLoading(false);
-
-      }
-
-    }
-
-
-    loadEvents();
-
-  }, []);
-
-
-  // =====================================
-  // CLOSE EVENT
-  // =====================================
-
-  const closeEvent = () => {
-
-    setSelectedEvent(null);
-
-  };
-
-
-  // =====================================
-  // ESC KEY
-  // =====================================
-
-  useEffect(() => {
-
-    const handleKeyDown =
-      (event) => {
-
-        if (
-          event.key ===
-          "Escape"
-        ) {
-
-          closeEvent();
-
-        }
-
-      };
-
-
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
+    const eventsQuery = query(
+      eventsRef,
+      orderBy("createdAt", "desc")
     );
 
+    const unsubscribe = onSnapshot(
+      eventsQuery,
+      (snapshot) => {
+        const firebaseEvents = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setEvents(firebaseEvents);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Firebase Events Error:", error);
+
+        setEvents([]);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // ==================================================
+  // ESC KEY - CLOSE MODAL
+  // ==================================================
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedEvent(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
-
     };
-
   }, []);
 
+  // ==================================================
+  // DATE
+  // ==================================================
 
-  // =====================================
-  // UI
-  // =====================================
+  const formatDate = (value) => {
+    if (!value) {
+      return "तिथि जल्द घोषित होगी";
+    }
+
+    try {
+      let date;
+
+      if (value?.toDate) {
+        date = value.toDate();
+      } else if (value instanceof Date) {
+        date = value;
+      } else {
+        date = new Date(value);
+      }
+
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
+
+      return date.toLocaleDateString("hi-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    } catch {
+      return "तिथि उपलब्ध नहीं";
+    }
+  };
+
+  // ==================================================
+  // IMAGE
+  // ==================================================
+
+  const getImage = (event) => {
+    return (
+      event?.imageUrl ||
+      event?.image ||
+      event?.photo ||
+      event?.img ||
+      ""
+    );
+  };
+
+  // ==================================================
+  // TITLE
+  // ==================================================
+
+  const getTitle = (event) => {
+    return (
+      event?.title ||
+      event?.name ||
+      event?.eventName ||
+      "सामाजिक कार्यक्रम"
+    );
+  };
+
+  // ==================================================
+  // DESCRIPTION
+  // ==================================================
+
+  const getDescription = (event) => {
+    return (
+      event?.description ||
+      event?.details ||
+      event?.about ||
+      "संस्था द्वारा आयोजित सामाजिक कार्यक्रम।"
+    );
+  };
+
+  // ==================================================
+  // DATE
+  // ==================================================
+
+  const getDate = (event) => {
+    return (
+      event?.date ||
+      event?.eventDate ||
+      event?.programDate ||
+      null
+    );
+  };
+
+  // ==================================================
+  // LOCATION
+  // ==================================================
+
+  const getLocation = (event) => {
+    return (
+      event?.location ||
+      event?.place ||
+      event?.address ||
+      "छत्तीसगढ़"
+    );
+  };
+
+  // ==================================================
+  // LOADING
+  // ==================================================
+
+  if (loading) {
+    return (
+      <section
+        id="events"
+        className="
+          w-full
+          min-h-screen
+          pt-28
+          pb-20
+          bg-gradient-to-b
+          from-green-50
+          to-white
+          scroll-mt-20
+        "
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          <div className="text-center mb-12">
+
+            <span className="
+              inline-block
+              px-4
+              py-2
+              rounded-full
+              bg-green-100
+              text-green-700
+              font-semibold
+              text-sm
+              mb-4
+            ">
+              युवा सारथी सेवा संस्था
+            </span>
+
+            <h2 className="
+              text-4xl
+              sm:text-5xl
+              font-bold
+              text-green-700
+            ">
+              हमारे कार्यक्रम
+            </h2>
+
+            <p className="
+              mt-4
+              text-gray-600
+              text-base
+              sm:text-lg
+            ">
+              संस्था द्वारा आयोजित प्रमुख सामाजिक कार्यक्रम
+            </p>
+
+          </div>
+
+          <div className="
+            flex
+            justify-center
+            items-center
+            py-20
+          ">
+            <Loader2
+              size={42}
+              className="animate-spin text-green-600"
+            />
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // ==================================================
+  // MAIN
+  // ==================================================
 
   return (
-
-    <section
-      id="events"
-      className="py-20 bg-gradient-to-b from-green-50 to-white"
-    >
-
-      <div className="max-w-7xl mx-auto px-5">
-
-
-        {/* HEADER */}
-
-        <div className="text-center mb-14">
-
-          <h2 className="text-4xl md:text-5xl font-bold text-green-800">
-
-            हमारे कार्यक्रम
-
-          </h2>
-
-
-          <p className="text-gray-600 mt-3">
-
-            संस्था द्वारा आयोजित प्रमुख सामाजिक कार्यक्रम
-
-          </p>
-
-        </div>
-
-
-        {/* LOADING */}
-
-        {loading && (
-
-          <p className="text-center text-gray-500 mb-6">
-
-            कार्यक्रम लोड हो रहे हैं...
-
-          </p>
-
-        )}
-
-
-        {/* EVENTS GRID */}
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-          {events.map(
-            (event) => (
-
-              <div
-                key={event.id}
-                className="bg-white rounded-3xl overflow-hidden shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
-              >
-
-
-                {/* =================================
-                    IMAGE
-                ================================= */}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedEvent(
-                      event
-                    )
-                  }
-                  className="block w-full bg-gray-100 cursor-pointer focus:outline-none"
-                >
-
-                  <div className="w-full h-56 flex items-center justify-center overflow-hidden">
-
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      loading="lazy"
-                      className="w-full h-full object-contain"
-                    />
-
-                  </div>
-
-                </button>
-
-
-                {/* =================================
-                    CONTENT
-                ================================= */}
-
-                <div className="p-6">
-
-
-                  <h3 className="text-2xl font-bold text-green-700">
-
-                    {event.title}
-
-                  </h3>
-
-
-                  {/* DATE */}
-
-                  <div className="flex items-center gap-2 mt-4 text-gray-600">
-
-                    <FaCalendarAlt className="text-orange-500" />
-
-                    <span>
-
-                      {formatEventDate(
-                        event.date
-                      )}
-
-                    </span>
-
-                  </div>
-
-
-                  {/* LOCATION */}
-
-                  <div className="flex items-center gap-2 mt-2 text-gray-600">
-
-                    <FaMapMarkerAlt className="text-red-500" />
-
-                    <span>
-
-                      {event.location}
-
-                    </span>
-
-                  </div>
-
-
-                  {/* DESCRIPTION */}
-
-                  {event.description && (
-
-                    <p className="mt-4 text-gray-600 line-clamp-2">
-
-                      {event.description}
-
-                    </p>
-
-                  )}
-
-
-                  {/* DETAIL BUTTON */}
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedEvent(
-                        event
-                      )
-                    }
-                    className="mt-6 w-full bg-green-700 text-white py-3 rounded-xl font-semibold hover:bg-green-800 transition"
-                  >
-
-                    विवरण देखें
-
-                  </button>
-
-                </div>
-
-              </div>
-
-            )
-          )}
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================
-          FULL IMAGE MODAL
-      ===================================== */}
-
-      {selectedEvent && (
-
-        <div
-          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-2 sm:p-5"
-          onClick={closeEvent}
-        >
-
-
-          <div
-            className="bg-white w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-3xl shadow-2xl"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-
-
-            {/* =================================
-                ORIGINAL FULL IMAGE
-            ================================= */}
-
-            <div className="relative bg-black">
-
-
-              <div className="w-full min-h-[250px] max-h-[75vh] flex items-center justify-center p-2 sm:p-5">
-
-                <img
-                  src={
-                    selectedEvent.image
-                  }
-                  alt={
-                    selectedEvent.title
-                  }
-                  className="max-w-full max-h-[70vh] w-auto h-auto object-contain"
+    <>
+      <section
+        id="events"
+        className="
+          w-full
+          min-h-screen
+          pt-28
+          pb-20
+          bg-gradient-to-b
+          from-green-50
+          to-white
+          scroll-mt-20
+          overflow-x-hidden
+        "
+      >
+
+        <div className="
+          max-w-7xl
+          mx-auto
+          px-4
+          sm:px-6
+          lg:px-8
+        ">
+
+          {/* ==========================================
+              HEADER
+          ========================================== */}
+
+          <div className="
+            text-center
+            mb-12
+            sm:mb-16
+          ">
+
+            <span className="
+              inline-block
+              px-4
+              py-2
+              rounded-full
+              bg-green-100
+              text-green-700
+              font-semibold
+              text-sm
+              mb-4
+            ">
+              युवा सारथी सेवा संस्था
+            </span>
+
+            <h2 className="
+              text-4xl
+              sm:text-5xl
+              lg:text-6xl
+              font-bold
+              text-green-700
+              leading-tight
+            ">
+              हमारे कार्यक्रम
+            </h2>
+
+            <p className="
+              mt-4
+              text-gray-600
+              text-base
+              sm:text-lg
+              max-w-2xl
+              mx-auto
+              leading-relaxed
+            ">
+              संस्था द्वारा आयोजित प्रमुख सामाजिक कार्यक्रम
+              एवं जनसेवा गतिविधियां
+            </p>
+
+          </div>
+
+          {/* ==========================================
+              NO EVENTS
+          ========================================== */}
+
+          {events.length === 0 ? (
+
+            <div className="
+              w-full
+              max-w-2xl
+              mx-auto
+              text-center
+              bg-white
+              rounded-3xl
+              shadow-md
+              border
+              border-green-100
+              p-8
+              sm:p-12
+            ">
+
+              <div className="
+                w-20
+                h-20
+                mx-auto
+                rounded-full
+                bg-green-100
+                flex
+                items-center
+                justify-center
+                mb-5
+              ">
+
+                <CalendarDays
+                  size={38}
+                  className="text-green-600"
                 />
 
               </div>
 
+              <h3 className="
+                text-xl
+                sm:text-2xl
+                font-bold
+                text-gray-800
+              ">
+                अभी कोई कार्यक्रम उपलब्ध नहीं है
+              </h3>
 
-              {/* CLOSE */}
-
-              <button
-                type="button"
-                onClick={closeEvent}
-                className="absolute top-3 right-3 sm:top-5 sm:right-5 w-11 h-11 rounded-full bg-white/95 flex items-center justify-center text-gray-700 hover:bg-white shadow-xl hover:scale-110 transition"
-                aria-label="Close"
-              >
-
-                <FaTimes />
-
-              </button>
+              <p className="
+                mt-3
+                text-gray-600
+                text-sm
+                sm:text-base
+              ">
+                जल्द ही हमारे आगामी कार्यक्रम यहां दिखाई देंगे।
+              </p>
 
             </div>
 
+          ) : (
 
-            {/* =================================
-                EVENT DETAILS
-            ================================= */}
+            /* ========================================
+               EVENTS GRID
+            ======================================== */
 
-            <div className="p-6 md:p-8">
+            <div className="
+              grid
+              grid-cols-1
+              md:grid-cols-2
+              lg:grid-cols-3
+              gap-7
+              lg:gap-8
+              items-stretch
+            ">
 
+              {events.map((event) => {
 
-              <h2 className="text-3xl md:text-4xl font-bold text-green-800">
+                const image = getImage(event);
+                const title = getTitle(event);
+                const description = getDescription(event);
+                const date = getDate(event);
+                const location = getLocation(event);
 
-                {selectedEvent.title}
+                return (
+                  <article
+                    key={event.id}
+                    className="
+                      w-full
+                      min-w-0
+                      bg-white
+                      rounded-3xl
+                      overflow-hidden
+                      shadow-lg
+                      border
+                      border-gray-100
+                      hover:shadow-2xl
+                      transition-all
+                      duration-300
+                      flex
+                      flex-col
+                      h-full
+                    "
+                  >
 
+                    {/* =================================
+                        IMAGE
+                    ================================= */}
+
+                    <div className="
+                      relative
+                      w-full
+                      h-56
+                      sm:h-64
+                      bg-gray-100
+                      overflow-hidden
+                      shrink-0
+                    ">
+
+                      {image ? (
+
+                        <img
+                          src={image}
+                          alt={title}
+                          className="
+                            w-full
+                            h-full
+                            object-cover
+                            transition-transform
+                            duration-500
+                            hover:scale-105
+                          "
+                          onError={(e) => {
+
+                            e.currentTarget.style.display =
+                              "none";
+
+                            const fallback =
+                              e.currentTarget.parentElement?.querySelector(
+                                ".event-image-fallback"
+                              );
+
+                            if (fallback) {
+                              fallback.classList.remove(
+                                "hidden"
+                              );
+
+                              fallback.classList.add(
+                                "flex"
+                              );
+                            }
+
+                          }}
+                        />
+
+                      ) : null}
+
+                      {/* IMAGE FALLBACK */}
+
+                      <div
+                        className={`
+                          event-image-fallback
+                          absolute
+                          inset-0
+                          ${
+                            image
+                              ? "hidden"
+                              : "flex"
+                          }
+                          items-center
+                          justify-center
+                          bg-green-50
+                        `}
+                      >
+
+                        <div className="text-center">
+
+                          <ImageIcon
+                            size={48}
+                            className="
+                              mx-auto
+                              text-green-500
+                            "
+                          />
+
+                          <p className="
+                            mt-2
+                            text-green-700
+                            font-medium
+                          ">
+                            कार्यक्रम की तस्वीर
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      {/* BADGE */}
+
+                      <div className="
+                        absolute
+                        top-4
+                        right-4
+                        bg-black/60
+                        text-white
+                        px-3
+                        py-1.5
+                        rounded-full
+                        text-xs
+                        font-medium
+                        backdrop-blur-sm
+                      ">
+                        कार्यक्रम
+                      </div>
+
+                    </div>
+
+                    {/* =================================
+                        CONTENT
+                    ================================= */}
+
+                    <div className="
+                      p-6
+                      sm:p-7
+                      flex
+                      flex-col
+                      flex-1
+                      min-w-0
+                    ">
+
+                      {/* TITLE */}
+
+                      <h3 className="
+                        text-xl
+                        sm:text-2xl
+                        font-bold
+                        text-green-700
+                        leading-tight
+                        mb-5
+                        break-words
+                      ">
+                        {title}
+                      </h3>
+
+                      {/* DATE */}
+
+                      <div className="
+                        flex
+                        items-start
+                        gap-3
+                        mb-3
+                      ">
+
+                        <CalendarDays
+                          size={20}
+                          className="
+                            text-orange-500
+                            shrink-0
+                            mt-0.5
+                          "
+                        />
+
+                        <span className="
+                          text-gray-700
+                          text-sm
+                          sm:text-base
+                        ">
+                          {formatDate(date)}
+                        </span>
+
+                      </div>
+
+                      {/* LOCATION */}
+
+                      <div className="
+                        flex
+                        items-start
+                        gap-3
+                        mb-4
+                      ">
+
+                        <MapPin
+                          size={20}
+                          className="
+                            text-red-500
+                            shrink-0
+                            mt-0.5
+                          "
+                        />
+
+                        <span className="
+                          text-gray-700
+                          text-sm
+                          sm:text-base
+                          break-words
+                        ">
+                          {location}
+                        </span>
+
+                      </div>
+
+                      {/* DESCRIPTION */}
+
+                      <p className="
+                        text-gray-600
+                        leading-relaxed
+                        text-sm
+                        sm:text-base
+                        mb-6
+                        break-words
+                      ">
+                        {description}
+                      </p>
+
+                      {/* BUTTON */}
+
+                      <div className="mt-auto pt-2">
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedEvent(event)
+                          }
+                          className="
+                            w-full
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                            bg-green-700
+                            hover:bg-green-800
+                            text-white
+                            py-3
+                            px-5
+                            rounded-xl
+                            font-semibold
+                            text-sm
+                            sm:text-base
+                            transition-all
+                            duration-200
+                            active:scale-[0.98]
+                          "
+                        >
+                          विवरण देखें
+
+                          <ChevronRight size={18} />
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </article>
+                );
+              })}
+
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* =================================================
+          EVENT DETAILS MODAL
+      ================================================= */}
+
+      {selectedEvent && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            z-[100]
+            bg-black/75
+            backdrop-blur-sm
+            flex
+            items-center
+            justify-center
+            p-3
+            sm:p-6
+          "
+          onClick={() =>
+            setSelectedEvent(null)
+          }
+        >
+
+          {/* MODAL */}
+
+          <div
+            className="
+              relative
+              w-full
+              max-w-4xl
+              max-h-[94vh]
+              overflow-y-auto
+              bg-white
+              rounded-2xl
+              sm:rounded-3xl
+              shadow-2xl
+            "
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            {/* CLOSE */}
+
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedEvent(null)
+              }
+              className="
+                absolute
+                top-3
+                right-3
+                sm:top-5
+                sm:right-5
+                z-30
+                w-10
+                h-10
+                rounded-full
+                bg-black/65
+                hover:bg-black/85
+                text-white
+                flex
+                items-center
+                justify-center
+                transition
+              "
+              aria-label="Close"
+            >
+              <X size={22} />
+            </button>
+
+            {/* =========================================
+                FULL IMAGE
+            ========================================= */}
+
+            {getImage(selectedEvent) && (
+
+              <div className="
+                w-full
+                bg-black
+                flex
+                items-center
+                justify-center
+                rounded-t-2xl
+                sm:rounded-t-3xl
+                overflow-hidden
+              ">
+
+                <img
+                  src={getImage(selectedEvent)}
+                  alt={getTitle(selectedEvent)}
+                  className="
+                    block
+                    w-auto
+                    h-auto
+                    max-w-full
+                    max-h-[75vh]
+                    object-contain
+                  "
+                />
+
+              </div>
+
+            )}
+
+            {/* =========================================
+                DETAILS
+            ========================================= */}
+
+            <div className="
+              p-6
+              sm:p-8
+            ">
+
+              {/* BADGE */}
+
+              <span className="
+                inline-block
+                px-3
+                py-1.5
+                rounded-full
+                bg-green-100
+                text-green-700
+                text-xs
+                font-semibold
+                mb-4
+              ">
+                कार्यक्रम
+              </span>
+
+              {/* TITLE */}
+
+              <h2 className="
+                text-2xl
+                sm:text-3xl
+                font-bold
+                text-green-700
+                leading-tight
+                mb-6
+                break-words
+              ">
+                {getTitle(selectedEvent)}
               </h2>
-
 
               {/* DATE */}
 
-              <div className="flex items-center gap-3 mt-5 text-gray-700">
+              <div className="
+                flex
+                items-start
+                gap-3
+                mb-5
+              ">
 
-                <FaCalendarAlt className="text-orange-500" />
+                <CalendarDays
+                  size={22}
+                  className="
+                    text-orange-500
+                    shrink-0
+                    mt-0.5
+                  "
+                />
 
-                <span>
+                <div>
 
-                  {formatEventDate(
-                    selectedEvent.date
-                  )}
+                  <p className="
+                    text-xs
+                    text-gray-500
+                    mb-1
+                  ">
+                    कार्यक्रम की तिथि
+                  </p>
 
-                </span>
-
-              </div>
-
-
-              {/* LOCATION */}
-
-              <div className="flex items-center gap-3 mt-3 text-gray-700">
-
-                <FaMapMarkerAlt className="text-red-500" />
-
-                <span>
-
-                  {selectedEvent.location}
-
-                </span>
-
-              </div>
-
-
-              {/* DESCRIPTION */}
-
-              {selectedEvent.description && (
-
-                <div className="mt-6">
-
-                  <h3 className="text-xl font-bold text-green-700 mb-2">
-
-                    कार्यक्रम के बारे में
-
-                  </h3>
-
-
-                  <p className="text-gray-600 leading-8 whitespace-pre-line">
-
-                    {selectedEvent.description}
-
+                  <p className="
+                    text-gray-800
+                    font-medium
+                  ">
+                    {formatDate(
+                      getDate(selectedEvent)
+                    )}
                   </p>
 
                 </div>
 
-              )}
+              </div>
 
+              {/* LOCATION */}
+
+              <div className="
+                flex
+                items-start
+                gap-3
+                mb-6
+              ">
+
+                <MapPin
+                  size={22}
+                  className="
+                    text-red-500
+                    shrink-0
+                    mt-0.5
+                  "
+                />
+
+                <div>
+
+                  <p className="
+                    text-xs
+                    text-gray-500
+                    mb-1
+                  ">
+                    स्थान
+                  </p>
+
+                  <p className="
+                    text-gray-800
+                    font-medium
+                    break-words
+                  ">
+                    {getLocation(selectedEvent)}
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* DESCRIPTION */}
+
+              <div className="
+                border-t
+                border-gray-100
+                pt-5
+              ">
+
+                <h3 className="
+                  text-lg
+                  sm:text-xl
+                  font-bold
+                  text-gray-800
+                  mb-3
+                ">
+                  कार्यक्रम के बारे में
+                </h3>
+
+                <p className="
+                  text-gray-600
+                  leading-relaxed
+                  whitespace-pre-line
+                  break-words
+                ">
+                  {getDescription(selectedEvent)}
+                </p>
+
+              </div>
 
               {/* CLOSE */}
 
               <button
                 type="button"
-                onClick={closeEvent}
-                className="mt-7 w-full bg-green-700 text-white py-3 rounded-xl font-semibold hover:bg-green-800 transition"
+                onClick={() =>
+                  setSelectedEvent(null)
+                }
+                className="
+                  w-full
+                  mt-7
+                  bg-green-700
+                  hover:bg-green-800
+                  text-white
+                  py-3
+                  rounded-xl
+                  font-semibold
+                  transition
+                "
               >
-
                 बंद करें
-
               </button>
 
             </div>
 
           </div>
-
         </div>
-
       )}
-
-    </section>
-
+    </>
   );
-
-}
-
+};
 
 export default Events;

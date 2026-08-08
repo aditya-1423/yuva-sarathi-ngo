@@ -97,7 +97,7 @@ function Contact() {
 
               <div>
                 <h3 className="font-bold text-lg">फ़ोन</h3>
-                <p className="text-gray-600">+91 9876543210</p>
+                <p className="text-gray-600">+91 9238022531</p>
               </div>
 
             </div>

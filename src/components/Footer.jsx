@@ -50,7 +50,7 @@ const Footer = () => {
       href: "#services",
     },
     {
-      name: "इवेंट्स",
+      name: "हमारे कार्यक्रम",
       href: "#events",
     },
     {
@@ -76,10 +76,10 @@ const Footer = () => {
       name: "सामान्य प्रश्न",
       href: "#faq",
     },
-    {
-      name: "कार्यक्रम",
-      href: "#events",
-    },
+    // {
+    //   name: "कार्यक्रम",
+    //   href: "#events",
+    // },
     {
       name: "हमारी गतिविधियां",
       href: "#gallery",
@@ -263,7 +263,7 @@ const Footer = () => {
                     transition
                   "
                 >
-                  +91 99999 99999
+                  +91 9238022531
                 </a>
 
               </div>
