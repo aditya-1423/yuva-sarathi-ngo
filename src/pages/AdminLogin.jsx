@@ -8,6 +8,8 @@ import {
 
 import {
   createEvent,
+  getEvents,
+  deleteEvent,
 } from "../firebase/events.js";
 
 import {
@@ -18,137 +20,126 @@ import {
 
 import "./AdminLogin.css";
 
-
 const ADMIN_EMAIL =
   "adityaverma1325@gmail.com";
 
+const MAX_EVENT_IMAGES = 5;
+
+const MAX_FILE_SIZE =
+  15 * 1024 * 1024;
+
+
+// =====================================
+// ADMIN LOGIN
+// =====================================
 
 function AdminLogin() {
 
   // =====================================
-  // LOGIN
+  // LOGIN STATE
   // =====================================
 
-  const [
-    email,
-    setEmail,
-  ] = useState("");
+  const [email, setEmail] =
+    useState("");
 
+  const [password, setPassword] =
+    useState("");
 
-  const [
-    password,
-    setPassword,
-  ] = useState("");
+  const [user, setUser] =
+    useState(null);
 
+  const [error, setError] =
+    useState("");
 
-  const [
-    user,
-    setUser,
-  ] = useState(null);
+  const [resetMessage, setResetMessage] =
+    useState("");
 
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
-
-  const [
-    resetMessage,
-    setResetMessage,
-  ] = useState("");
-
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
 
   // =====================================
-  // EVENT STATES
+  // EVENT STATE
   // =====================================
 
-  const [
-    eventTitle,
-    setEventTitle,
-  ] = useState("");
+  const [eventTitle, setEventTitle] =
+    useState("");
 
+  const [eventDate, setEventDate] =
+    useState("");
 
-  const [
-    eventDate,
-    setEventDate,
-  ] = useState("");
+  const [eventLocation, setEventLocation] =
+    useState("");
 
+  const [eventDescription, setEventDescription] =
+    useState("");
 
-  const [
-    eventLocation,
-    setEventLocation,
-  ] = useState("");
+  const [eventImages, setEventImages] =
+    useState([]);
 
+  const [eventLoading, setEventLoading] =
+    useState(false);
 
-  const [
-    eventDescription,
-    setEventDescription,
-  ] = useState("");
+  const [eventMessage, setEventMessage] =
+    useState("");
 
+  // Existing events
+  const [events, setEvents] =
+    useState([]);
 
-  const [
-    eventImage,
-    setEventImage,
-  ] = useState(null);
-
-
-  const [
-    eventLoading,
-    setEventLoading,
-  ] = useState(false);
-
-
-  const [
-    eventMessage,
-    setEventMessage,
-  ] = useState("");
+  // Event delete loading
+  const [eventDeleteLoading, setEventDeleteLoading] =
+    useState(null);
 
 
   // =====================================
-  // GALLERY
+  // GALLERY STATE
   // =====================================
 
-  const [
-    selectedImages,
-    setSelectedImages,
-  ] = useState([]);
+  const [selectedImages, setSelectedImages] =
+    useState([]);
+
+  const [galleryLoading, setGalleryLoading] =
+    useState(false);
+
+  const [imageCaption, setImageCaption] =
+    useState("");
+
+  const [galleryMessage, setGalleryMessage] =
+    useState("");
+
+  const [galleryImages, setGalleryImages] =
+    useState([]);
+
+  const [deleteLoading, setDeleteLoading] =
+    useState(null);
 
 
-  const [
-    galleryLoading,
-    setGalleryLoading,
-  ] = useState(false);
+  // =====================================
+  // LOAD EVENTS
+  // =====================================
 
+  async function loadEvents() {
 
-  const [
-    imageCaption,
-    setImageCaption,
-  ] = useState("");
+    try {
 
+      const eventList =
+        await getEvents();
 
-  const [
-    galleryMessage,
-    setGalleryMessage,
-  ] = useState("");
+      setEvents(eventList);
 
+    } catch (error) {
 
-  const [
-    galleryImages,
-    setGalleryImages,
-  ] = useState([]);
+      console.error(
+        "Events load error:",
+        error
+      );
 
-
-  const [
-    deleteLoading,
-    setDeleteLoading,
-  ] = useState(null);
+      setEventMessage(
+        "कार्यक्रम लोड नहीं हो सके।"
+      );
+    }
+  }
 
 
   // =====================================
@@ -162,7 +153,6 @@ function AdminLogin() {
     setError("");
     setResetMessage("");
 
-
     if (
       email.trim().toLowerCase() !==
       ADMIN_EMAIL.toLowerCase()
@@ -175,11 +165,9 @@ function AdminLogin() {
       return;
     }
 
-
     try {
 
       setLoading(true);
-
 
       const result =
         await adminLogin(
@@ -188,18 +176,18 @@ function AdminLogin() {
         );
 
 
+      // ================================
+      // LOAD GALLERY
+      // ================================
+
       try {
 
         const images =
           await getGalleryImages();
 
-        setGalleryImages(
-          images
-        );
+        setGalleryImages(images);
 
-      } catch (
-        galleryError
-      ) {
+      } catch (galleryError) {
 
         console.error(
           "Gallery load error:",
@@ -209,19 +197,35 @@ function AdminLogin() {
       }
 
 
-      setUser(
-        result.user
-      );
+      // ================================
+      // LOAD EVENTS
+      // ================================
 
-    } catch (
-      loginError
-    ) {
+      try {
+
+        const eventList =
+          await getEvents();
+
+        setEvents(eventList);
+
+      } catch (eventError) {
+
+        console.error(
+          "Events load error:",
+          eventError
+        );
+
+      }
+
+
+      setUser(result.user);
+
+    } catch (loginError) {
 
       console.error(
         "Login error:",
         loginError
       );
-
 
       setError(
         "ईमेल या पासवर्ड गलत है।"
@@ -232,19 +236,17 @@ function AdminLogin() {
       setLoading(false);
 
     }
-
   }
 
 
   // =====================================
-  // PASSWORD RESET
+  // RESET PASSWORD
   // =====================================
 
   async function handlePasswordReset() {
 
     const resetEmail =
       email.trim().toLowerCase();
-
 
     if (
       resetEmail !==
@@ -258,17 +260,14 @@ function AdminLogin() {
       return;
     }
 
-
     try {
 
       setError("");
       setResetMessage("");
 
-
       await sendAdminResetLink(
         resetEmail
       );
-
 
       setResetMessage(
         "पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है।"
@@ -281,89 +280,95 @@ function AdminLogin() {
         err
       );
 
-
       setError(
         `रीसेट में समस्या आई: ${
           err.code ||
           "Unknown error"
         }`
       );
-
     }
-
   }
 
 
   // =====================================
   // EVENT IMAGE SELECT
-  // NO CROP
+  // MAX 5 / EACH 15MB
   // =====================================
 
-  function handleEventImageSelect(
+  function handleEventImagesSelect(
     event
   ) {
 
-    const file =
-      event.target.files?.[0] ||
-      null;
-
+    const files =
+      Array.from(
+        event.target.files || []
+      );
 
     setEventMessage("");
 
+    if (files.length === 0) {
 
-    if (!file) {
-
-      setEventImage(null);
+      setEventImages([]);
 
       return;
     }
-
 
     if (
-      !file.type.startsWith(
-        "image/"
-      )
+      files.length >
+      MAX_EVENT_IMAGES
     ) {
 
-      setEventImage(null);
+      setEventImages([]);
 
       setEventMessage(
-        "कृपया केवल तस्वीर चुनें।"
+        "एक कार्यक्रम में अधिकतम 5 तस्वीरें ही चुन सकते हैं।"
       );
 
-      event.target.value =
-        "";
+      event.target.value = "";
 
       return;
     }
 
+    for (const file of files) {
 
-    if (
-      file.size >
-      15 * 1024 * 1024
-    ) {
+      if (
+        !file.type ||
+        !file.type.startsWith("image/")
+      ) {
 
-      setEventImage(null);
+        setEventImages([]);
 
-      setEventMessage(
-        "Cover image 15 MB से छोटी होनी चाहिए।"
-      );
+        setEventMessage(
+          `${file.name} image नहीं है।`
+        );
 
-      event.target.value =
-        "";
+        event.target.value = "";
 
-      return;
+        return;
+      }
+
+      if (
+        file.size >
+        MAX_FILE_SIZE
+      ) {
+
+        setEventImages([]);
+
+        setEventMessage(
+          `${file.name} 15 MB से बड़ी है। हर image की limit 15 MB है।`
+        );
+
+        event.target.value = "";
+
+        return;
+      }
     }
 
-
-    // ORIGINAL IMAGE
-    setEventImage(file);
-
+    setEventImages(files);
 
     setEventMessage(
-      `Cover image चुनी गई: ${file.name}`
+      `${files.length} तस्वीरें चुनी गई हैं। हर image 15 MB के अंदर है।`
     );
-
   }
 
 
@@ -379,21 +384,20 @@ function AdminLogin() {
 
     setEventMessage("");
 
-
-    if (!eventImage) {
+    if (
+      eventImages.length === 0
+    ) {
 
       setEventMessage(
-        "कृपया कार्यक्रम की Cover Image चुनें।"
+        "कृपया कम से कम 1 कार्यक्रम की तस्वीर चुनें।"
       );
 
       return;
     }
 
-
     try {
 
       setEventLoading(true);
-
 
       await createEvent({
 
@@ -409,30 +413,30 @@ function AdminLogin() {
         description:
           eventDescription.trim(),
 
-        imageFile:
-          eventImage,
+        imageFiles:
+          eventImages,
 
       });
 
 
-      // RESET
+      // Clear form
 
       setEventTitle("");
-
       setEventDate("");
-
       setEventLocation("");
-
       setEventDescription("");
-
-      setEventImage(null);
-
+      setEventImages([]);
 
       event.target.reset();
 
 
+      // Reload event list
+
+      await loadEvents();
+
+
       setEventMessage(
-        "कार्यक्रम और Cover Image सफलतापूर्वक जोड़ दिए गए! 🎉"
+        "कार्यक्रम और उसकी सभी तस्वीरें सफलतापूर्वक जोड़ दी गईं! 🎉"
       );
 
     } catch (error) {
@@ -442,10 +446,9 @@ function AdminLogin() {
         error
       );
 
-
       setEventMessage(
         error.message ||
-          "कार्यक्रम नहीं जोड़ा जा सका। फिर से कोशिश करें।"
+        "कार्यक्रम नहीं जोड़ा जा सका।"
       );
 
     } finally {
@@ -453,7 +456,83 @@ function AdminLogin() {
       setEventLoading(false);
 
     }
+  }
 
+
+  // =====================================
+  // DELETE EVENT
+  // =====================================
+
+  async function handleDeleteEvent(
+    eventId
+  ) {
+
+    if (!eventId) {
+      return;
+    }
+
+
+    const confirmDelete =
+      window.confirm(
+        "क्या आप यह पूरा कार्यक्रम हटाना चाहते हैं?\n\nइससे कार्यक्रम Firestore से हट जाएगा।"
+      );
+
+
+    if (!confirmDelete) {
+      return;
+    }
+
+
+    try {
+
+      setEventDeleteLoading(
+        eventId
+      );
+
+      setEventMessage("");
+
+
+      // Delete from Firestore
+
+      await deleteEvent(
+        eventId
+      );
+
+
+      // Remove from screen immediately
+
+      setEvents(
+        (previousEvents) =>
+          previousEvents.filter(
+            (eventItem) =>
+              eventItem.id !== eventId
+          )
+      );
+
+
+      setEventMessage(
+        "कार्यक्रम सफलतापूर्वक हटा दिया गया।"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Delete event error:",
+        error
+      );
+
+      setEventMessage(
+        error.message ||
+        "कार्यक्रम हटाया नहीं जा सका।"
+      );
+
+    } finally {
+
+      setEventDeleteLoading(
+        null
+      );
+
+    }
   }
 
 
@@ -468,10 +547,7 @@ function AdminLogin() {
       const images =
         await getGalleryImages();
 
-
-      setGalleryImages(
-        images
-      );
+      setGalleryImages(images);
 
     } catch (error) {
 
@@ -480,18 +556,15 @@ function AdminLogin() {
         error
       );
 
-
       setGalleryMessage(
         "गैलरी की तस्वीरें लोड नहीं हो सकीं।"
       );
-
     }
-
   }
 
 
   // =====================================
-  // SELECT GALLERY IMAGES
+  // GALLERY SELECT
   // =====================================
 
   function handleImageSelect(
@@ -500,92 +573,65 @@ function AdminLogin() {
 
     const files =
       Array.from(
-        event.target.files ||
-          []
+        event.target.files || []
       );
 
-
-    setSelectedImages(
-      files
-    );
-
+    setSelectedImages(files);
     setGalleryMessage("");
 
-
     if (
-      files.length ===
-      0
+      files.length === 0
     ) {
 
       return;
-
     }
 
 
-    for (
-      const file of files
-    ) {
+    for (const file of files) {
 
       if (
-        !file.type.startsWith(
-          "image/"
-        )
+        !file.type ||
+        !file.type.startsWith("image/")
       ) {
 
-        setSelectedImages(
-          []
-        );
-
+        setSelectedImages([]);
 
         setGalleryMessage(
           `${file.name} तस्वीर नहीं है।`
         );
 
-
-        event.target.value =
-          "";
-
+        event.target.value = "";
 
         return;
-
       }
 
 
       if (
         file.size >
-        15 * 1024 * 1024
+        MAX_FILE_SIZE
       ) {
 
-        setSelectedImages(
-          []
-        );
-
+        setSelectedImages([]);
 
         setGalleryMessage(
           `${file.name} 15 MB से बड़ी है।`
         );
 
-
-        event.target.value =
-          "";
-
+        event.target.value = "";
 
         return;
-
       }
-
     }
 
 
     setGalleryMessage(
       `${files.length} तस्वीरें चुनी गई हैं।`
     );
-
   }
 
 
   // =====================================
-  // UPLOAD GALLERY
+  // ADD GALLERY
   // =====================================
 
   async function handleAddGalleryImages(
@@ -596,10 +642,8 @@ function AdminLogin() {
 
     setGalleryMessage("");
 
-
     if (
-      selectedImages.length ===
-      0
+      selectedImages.length === 0
     ) {
 
       setGalleryMessage(
@@ -614,7 +658,6 @@ function AdminLogin() {
 
       setGalleryLoading(true);
 
-
       const totalImages =
         selectedImages.length;
 
@@ -626,7 +669,6 @@ function AdminLogin() {
 
 
       setSelectedImages([]);
-
       setImageCaption("");
 
 
@@ -647,10 +689,9 @@ function AdminLogin() {
         error
       );
 
-
       setGalleryMessage(
         error.message ||
-          "तस्वीरें अपलोड नहीं हो सकीं।"
+        "तस्वीरें अपलोड नहीं हो सकीं।"
       );
 
     } finally {
@@ -658,12 +699,11 @@ function AdminLogin() {
       setGalleryLoading(false);
 
     }
-
   }
 
 
   // =====================================
-  // DELETE GALLERY IMAGE
+  // DELETE GALLERY
   // =====================================
 
   async function handleDeleteGalleryImage(
@@ -677,9 +717,7 @@ function AdminLogin() {
 
 
     if (!confirmDelete) {
-
       return;
-
     }
 
 
@@ -701,8 +739,7 @@ function AdminLogin() {
         (previous) =>
           previous.filter(
             (image) =>
-              image.id !==
-              imageId
+              image.id !== imageId
           )
       );
 
@@ -718,20 +755,16 @@ function AdminLogin() {
         error
       );
 
-
       setGalleryMessage(
         error.message ||
-          "तस्वीर हटाई नहीं जा सकी।"
+        "तस्वीर हटाई नहीं जा सकी।"
       );
 
     } finally {
 
-      setDeleteLoading(
-        null
-      );
+      setDeleteLoading(null);
 
     }
-
   }
 
 
@@ -761,12 +794,11 @@ function AdminLogin() {
 
     setSelectedImages([]);
 
-    setEventImage(null);
+    setEventImages([]);
 
+    setEvents([]);
 
-    window.location.hash =
-      "";
-
+    window.location.hash = "";
   }
 
 
@@ -782,7 +814,6 @@ function AdminLogin() {
 
         <section className="admin-card">
 
-
           <p className="admin-label">
             YUVA SARATHI NGO
           </p>
@@ -794,13 +825,12 @@ function AdminLogin() {
 
 
           <p>
-            स्वागत है,{" "}
-            {user.email}
+            स्वागत है, {user.email}
           </p>
 
 
           {/* =================================
-              EVENT
+              ADD EVENT
           ================================= */}
 
           <h2>
@@ -815,15 +845,10 @@ function AdminLogin() {
             }
           >
 
-
-            {/* TITLE */}
-
             <input
               type="text"
               placeholder="कार्यक्रम का नाम"
-              value={
-                eventTitle
-              }
+              value={eventTitle}
               onChange={(event) =>
                 setEventTitle(
                   event.target.value
@@ -833,13 +858,9 @@ function AdminLogin() {
             />
 
 
-            {/* DATE */}
-
             <input
               type="date"
-              value={
-                eventDate
-              }
+              value={eventDate}
               onChange={(event) =>
                 setEventDate(
                   event.target.value
@@ -849,14 +870,10 @@ function AdminLogin() {
             />
 
 
-            {/* LOCATION */}
-
             <input
               type="text"
               placeholder="कार्यक्रम का स्थान"
-              value={
-                eventLocation
-              }
+              value={eventLocation}
               onChange={(event) =>
                 setEventLocation(
                   event.target.value
@@ -866,13 +883,9 @@ function AdminLogin() {
             />
 
 
-            {/* DESCRIPTION */}
-
             <textarea
               placeholder="कार्यक्रम का विवरण"
-              value={
-                eventDescription
-              }
+              value={eventDescription}
               onChange={(event) =>
                 setEventDescription(
                   event.target.value
@@ -882,39 +895,112 @@ function AdminLogin() {
             />
 
 
-            {/* COVER IMAGE */}
+            {/* EVENT IMAGES */}
 
             <label>
-              कार्यक्रम की Cover Image
+              कार्यक्रम की तस्वीरें
             </label>
+
+
+            <p className="text-sm">
+              अधिकतम 5 तस्वीरें •
+              प्रत्येक image अधिकतम 15 MB
+            </p>
 
 
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={
-                handleEventImageSelect
+                handleEventImagesSelect
               }
               required
             />
 
 
-            {eventImage && (
+            {/* SELECTED EVENT IMAGES */}
 
-              <p>
+            {eventImages.length > 0 && (
 
-                चुनी गई image:{" "}
+              <div>
 
-                <strong>
-                  {eventImage.name}
-                </strong>
+                <p>
 
-              </p>
+                  <strong>
+                    {eventImages.length}
+                  </strong>{" "}
+                  तस्वीरें चुनी गई हैं।
+
+                </p>
+
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit,minmax(100px,1fr))",
+                    gap: "10px",
+                    marginTop: "10px",
+                  }}
+                >
+
+                  {eventImages.map(
+                    (file, index) => {
+
+                      const preview =
+                        URL.createObjectURL(
+                          file
+                        );
+
+
+                      return (
+
+                        <div
+                          key={
+                            `${file.name}-${index}`
+                          }
+                        >
+
+                          <img
+                            src={preview}
+                            alt={`Preview ${
+                              index + 1
+                            }`}
+                            style={{
+                              width: "100%",
+                              height: "100px",
+                              objectFit:
+                                "cover",
+                              borderRadius:
+                                "10px",
+                            }}
+                          />
+
+
+                          <small>
+
+                            {index === 0
+                              ? "Cover"
+                              : `Image ${
+                                  index + 1
+                                }`}
+
+                          </small>
+
+                        </div>
+
+                      );
+
+                    }
+                  )}
+
+                </div>
+
+              </div>
 
             )}
 
-
-            {/* SUBMIT */}
 
             <button
               type="submit"
@@ -929,23 +1015,189 @@ function AdminLogin() {
 
             </button>
 
-
           </form>
 
 
           {eventMessage && (
 
             <p className="event-message">
-
               {eventMessage}
-
             </p>
 
           )}
 
 
           {/* =================================
-              GALLERY
+              EVENT LIST + DELETE
+          ================================= */}
+
+          <h2>
+            जोड़े गए कार्यक्रम
+          </h2>
+
+
+          <div className="admin-event-list">
+
+            {events.length === 0 ? (
+
+              <p>
+                अभी कोई कार्यक्रम नहीं है।
+              </p>
+
+            ) : (
+
+              events.map(
+                (eventItem) => (
+
+                  <div
+                    key={
+                      eventItem.id
+                    }
+                    className="admin-event-item"
+                    style={{
+                      border:
+                        "1px solid #ddd",
+                      borderRadius:
+                        "12px",
+                      padding:
+                        "15px",
+                      marginBottom:
+                        "15px",
+                    }}
+                  >
+
+                    {/* COVER IMAGE */}
+
+                    {eventItem.image && (
+
+                      <img
+                        src={
+                          eventItem.image
+                        }
+                        alt={
+                          eventItem.title ||
+                          "कार्यक्रम"
+                        }
+                        style={{
+                          width:
+                            "100%",
+                          maxHeight:
+                            "220px",
+                          objectFit:
+                            "cover",
+                          borderRadius:
+                            "10px",
+                          marginBottom:
+                            "10px",
+                        }}
+                      />
+
+                    )}
+
+
+                    {/* EVENT DETAILS */}
+
+                    <h3>
+                      {eventItem.title}
+                    </h3>
+
+
+                    <p>
+                      <strong>
+                        तारीख:
+                      </strong>{" "}
+                      {eventItem.date}
+                    </p>
+
+
+                    <p>
+                      <strong>
+                        स्थान:
+                      </strong>{" "}
+                      {eventItem.location}
+                    </p>
+
+
+                    <p>
+                      <strong>
+                        विवरण:
+                      </strong>{" "}
+                      {eventItem.description}
+                    </p>
+
+
+                    {/* IMAGE COUNT */}
+
+                    {eventItem.galleryImages &&
+                      eventItem.galleryImages.length >
+                        0 && (
+
+                        <p>
+                          📷{" "}
+                          {
+                            eventItem
+                              .galleryImages
+                              .length
+                          }{" "}
+                          तस्वीरें
+                        </p>
+
+                      )}
+
+
+                    {/* DELETE EVENT BUTTON */}
+
+                    <button
+                      type="button"
+                      className="delete-gallery-button"
+                      onClick={() =>
+                        handleDeleteEvent(
+                          eventItem.id
+                        )
+                      }
+                      disabled={
+                        eventDeleteLoading ===
+                        eventItem.id
+                      }
+                      style={{
+                        marginTop:
+                          "10px",
+                        background:
+                          "#dc2626",
+                        color:
+                          "#fff",
+                        border:
+                          "none",
+                        padding:
+                          "10px 15px",
+                        borderRadius:
+                          "8px",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+
+                      {eventDeleteLoading ===
+                      eventItem.id
+
+                        ? "कार्यक्रम हटा रहे हैं..."
+
+                        : "🗑️ कार्यक्रम हटाएँ"}
+
+                    </button>
+
+                  </div>
+
+                )
+              )
+
+            )}
+
+          </div>
+
+
+          {/* =================================
+              GALLERY ADD
           ================================= */}
 
           <h2>
@@ -960,7 +1212,6 @@ function AdminLogin() {
             }
           >
 
-
             <input
               type="file"
               accept="image/*"
@@ -972,15 +1223,12 @@ function AdminLogin() {
             />
 
 
-            {selectedImages.length >
-              0 && (
+            {selectedImages.length > 0 && (
 
               <p>
 
                 <strong>
-                  {
-                    selectedImages.length
-                  }
+                  {selectedImages.length}
                 </strong>{" "}
                 तस्वीरें चुनी गई हैं।
 
@@ -992,9 +1240,7 @@ function AdminLogin() {
             <input
               type="text"
               placeholder="तस्वीर का विवरण"
-              value={
-                imageCaption
-              }
+              value={imageCaption}
               onChange={(event) =>
                 setImageCaption(
                   event.target.value
@@ -1016,16 +1262,13 @@ function AdminLogin() {
 
             </button>
 
-
           </form>
 
 
           {galleryMessage && (
 
             <p className="event-message">
-
               {galleryMessage}
-
             </p>
 
           )}
@@ -1042,8 +1285,7 @@ function AdminLogin() {
 
           <div className="admin-gallery-list">
 
-            {galleryImages.length ===
-            0 ? (
+            {galleryImages.length === 0 ? (
 
               <p>
                 अभी कोई तस्वीर नहीं है।
@@ -1055,12 +1297,9 @@ function AdminLogin() {
                 (image) => (
 
                   <div
-                    key={
-                      image.id
-                    }
+                    key={image.id}
                     className="admin-gallery-item"
                   >
-
 
                     <img
                       src={
@@ -1076,10 +1315,8 @@ function AdminLogin() {
                     <div className="admin-gallery-info">
 
                       <p>
-
                         {image.caption ||
                           "संस्था की गतिविधि"}
-
                       </p>
 
 
@@ -1116,7 +1353,9 @@ function AdminLogin() {
           </div>
 
 
-          {/* LOGOUT */}
+          {/* =================================
+              LOGOUT
+          ================================= */}
 
           <button
             type="button"
@@ -1127,13 +1366,11 @@ function AdminLogin() {
             लॉग आउट
           </button>
 
-
         </section>
 
       </main>
 
     );
-
   }
 
 
@@ -1145,14 +1382,12 @@ function AdminLogin() {
 
     <main className="admin-page">
 
-
       <form
         className="admin-card"
         onSubmit={
           handleLogin
         }
       >
-
 
         <p className="admin-label">
           YUVA SARATHI NGO
@@ -1170,8 +1405,6 @@ function AdminLogin() {
         </p>
 
 
-        {/* EMAIL */}
-
         <label>
           ईमेल
         </label>
@@ -1180,9 +1413,7 @@ function AdminLogin() {
         <input
           type="email"
           placeholder="एडमिन ईमेल"
-          value={
-            email
-          }
+          value={email}
           onChange={(event) =>
             setEmail(
               event.target.value
@@ -1192,8 +1423,6 @@ function AdminLogin() {
         />
 
 
-        {/* PASSWORD */}
-
         <label>
           पासवर्ड
         </label>
@@ -1202,9 +1431,7 @@ function AdminLogin() {
         <input
           type="password"
           placeholder="पासवर्ड डालें"
-          value={
-            password
-          }
+          value={password}
           onChange={(event) =>
             setPassword(
               event.target.value
@@ -1214,26 +1441,18 @@ function AdminLogin() {
         />
 
 
-        {/* ERROR */}
-
         {error && (
 
           <p className="admin-error">
-
             {error}
-
           </p>
 
         )}
 
 
-        {/* LOGIN */}
-
         <button
           type="submit"
-          disabled={
-            loading
-          }
+          disabled={loading}
         >
 
           {loading
@@ -1243,8 +1462,6 @@ function AdminLogin() {
         </button>
 
 
-        {/* RESET */}
-
         <button
           type="button"
           className="reset-button"
@@ -1252,42 +1469,31 @@ function AdminLogin() {
             handlePasswordReset
           }
         >
-
-          पासवर्ड भूल गए?
-          रीसेट करें
-
+          पासवर्ड भूल गए? रीसेट करें
         </button>
 
 
         {resetMessage && (
 
           <p className="reset-message">
-
             {resetMessage}
-
           </p>
 
         )}
 
 
-        {/* BACK */}
-
         <a
           className="back-home"
           href="#"
         >
-
           ← वेबसाइट पर वापस जाएँ
-
         </a>
-
 
       </form>
 
     </main>
 
   );
-
 }
 
 

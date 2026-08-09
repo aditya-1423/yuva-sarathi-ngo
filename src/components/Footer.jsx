@@ -38,25 +38,19 @@ const Footer = () => {
       href: "#home",
     },
     {
+     name: "हमारी गैलरी",
+     href: "#gallery",
+   },
+  
+    {
       name: "हमारे बारे में",
       href: "#about",
-    },
-    {
-      name: "हमारा मिशन",
-      href: "#mission",
-    },
-    {
-      name: "हमारी सेवाएं",
-      href: "#services",
     },
     {
       name: "हमारे कार्यक्रम",
       href: "#events",
     },
-    {
-      name: "गैलरी",
-      href: "#gallery",
-    },
+   
     {
       name: "संपर्क करें",
       href: "#contact",
@@ -73,17 +67,26 @@ const Footer = () => {
       href: "#donate",
     },
     {
+      name: "हमारा मिशन",
+      href: "#mission",
+    },
+    {
+      name: "हमारी सेवाएं",
+      href: "#services",
+    },
+    {
       name: "सामान्य प्रश्न",
       href: "#faq",
     },
+     
     // {
     //   name: "कार्यक्रम",
     //   href: "#events",
     // },
-    {
-      name: "हमारी गतिविधियां",
-      href: "#gallery",
-    },
+    // {
+    //   name: "हमारी गतिविधियां",
+    //   href: "#gallery",
+    // },
   ];
 
   return (
