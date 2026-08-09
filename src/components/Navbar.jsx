@@ -476,7 +476,7 @@ const Navbar = () => {
 
               <UserRound size={18} />
 
-             स्वयंसेवक बनें
+             सदस्यता
 
             </button>
 

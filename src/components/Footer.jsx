@@ -59,7 +59,7 @@ const Footer = () => {
 
   const importantLinks = [
     {
-      name: "स्वयंसेवक बनें",
+      name: "हमारे सदस्य बनें",
       href: "#volunteer",
     },
     {

@@ -29,39 +29,51 @@ function Volunteer() {
 
             <div className="mt-10 space-y-6">
 
+              {/* Membership */}
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl">
                   <FaUserPlus />
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-lg">स्वयंसेवक बनें</h4>
+                  <h4 className="font-semibold text-lg">
+                    सदस्य बनें
+                  </h4>
+
                   <p className="text-gray-600">
-                    संस्था से जुड़कर समाज सेवा करें।
+                    संस्था की सदस्यता लेकर समाज सेवा में योगदान दें।
                   </p>
                 </div>
               </div>
 
+              {/* Contact */}
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 text-xl">
                   <FaPhone />
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-lg">संपर्क करें</h4>
+                  <h4 className="font-semibold text-lg">
+                    संपर्क करें
+                  </h4>
+
                   <p className="text-gray-600">
-                    किसी भी जानकारी के लिए हमसे संपर्क करें।
+                    सदस्यता या संस्था से संबंधित जानकारी के लिए हमसे संपर्क करें।
                   </p>
                 </div>
               </div>
 
+              {/* Work Area */}
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl">
                   <FaMapMarkerAlt />
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-lg">कार्य क्षेत्र</h4>
+                  <h4 className="font-semibold text-lg">
+                    कार्य क्षेत्र
+                  </h4>
+
                   <p className="text-gray-600">
                     कबीरधाम, कवर्धा एवं छत्तीसगढ़ के विभिन्न जिले।
                   </p>
@@ -71,11 +83,11 @@ function Volunteer() {
             </div>
           </div>
 
-          {/* Form */}
+          {/* Membership Form */}
           <div className="bg-white rounded-[30px] shadow-xl p-8">
 
             <h3 className="text-3xl font-bold text-green-800 mb-8 text-center">
-              स्वयंसेवक आवेदन
+              सदस्यता आवेदन
             </h3>
 
             <form className="space-y-5">
@@ -114,7 +126,7 @@ function Volunteer() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-green-700 to-green-900 text-white py-4 rounded-xl font-bold text-lg hover:scale-105 transition duration-300 shadow-lg"
               >
-                ❤️ स्वयंसेवक बनें
+                ❤️ सदस्य बनें
               </button>
 
             </form>
