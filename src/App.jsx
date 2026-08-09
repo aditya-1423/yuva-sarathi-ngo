@@ -14,9 +14,9 @@ import Donate from "./components/Donate";
 import Contact from "./components/Contact";
 
 import Footer from "./components/Footer";
-// import WhatsAppButton from "./components/WhatsAppButton";
 
 import AdminLogin from "./pages/AdminLogin";
+import AdminPortal from "./ADMIN PORTAL/AdminPortal";
 
 
 // ==========================================
@@ -53,6 +53,8 @@ function App() {
       window.location.hash === "#admin-login"
     );
 
+  const [adminUser, setAdminUser] = useState(null);
+
 
   // ==========================================
   // HASH CHANGE
@@ -69,8 +71,16 @@ function App() {
       if (hash === "admin-login") {
 
         setShowAdminLogin(true);
-        return;
+        setCurrentSection("home");
 
+        return;
+      }
+
+      // ADMIN PORTAL
+      if (hash === "admin-portal") {
+
+        setShowAdminLogin(false);
+        return;
       }
 
       setShowAdminLogin(false);
@@ -81,7 +91,6 @@ function App() {
 
         setCurrentSection("home");
         return;
-
       }
 
 
@@ -121,12 +130,62 @@ function App() {
 
 
   // ==========================================
+  // ADMIN LOGIN SUCCESS
+  // ==========================================
+
+  function handleAdminLoginSuccess(user) {
+
+    console.log("Admin login successful:", user);
+
+    setAdminUser(user);
+    setShowAdminLogin(false);
+
+    window.location.hash = "admin-portal";
+  }
+
+
+  // ==========================================
+  // ADMIN LOGOUT
+  // ==========================================
+
+  function handleAdminLogout() {
+
+    setAdminUser(null);
+
+    window.location.hash = "home";
+  }
+
+
+  // ==========================================
   // ADMIN LOGIN PAGE
   // ==========================================
 
   if (showAdminLogin) {
 
-    return <AdminLogin />;
+    return (
+      <AdminLogin
+        onLoginSuccess={handleAdminLoginSuccess}
+      />
+    );
+
+  }
+
+
+  // ==========================================
+  // ADMIN PORTAL
+  // ==========================================
+
+  if (
+    window.location.hash === "#admin-portal" &&
+    adminUser
+  ) {
+
+    return (
+      <AdminPortal
+        user={adminUser}
+        onLogout={handleAdminLogout}
+      />
+    );
 
   }
 
@@ -210,16 +269,14 @@ function App() {
 
 
       // ======================================
-      // JOIN US
+      // VOLUNTEER
       // ======================================
-      // JOIN US KE NICHE FAQ BHI DIKHEGA
 
       case "volunteer":
 
         return (
           <>
             <Volunteer />
-
             <FAQ />
           </>
         );
@@ -283,12 +340,7 @@ function App() {
   return (
     <>
 
-      {/* NAVBAR */}
-
       <Navbar />
-
-
-      {/* MAIN CONTENT */}
 
       <main>
 
@@ -296,15 +348,7 @@ function App() {
 
       </main>
 
-
-      {/* FOOTER ALWAYS VISIBLE */}
-
       <Footer />
-
-
-      {/* WHATSAPP */}
-
-      {/* <WhatsAppButton /> */}
 
 
       {/* ADMIN ACCESS */}

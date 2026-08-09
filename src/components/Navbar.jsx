@@ -156,8 +156,7 @@ const Navbar = () => {
                     हमारी सेवाएं
                   </button> */}
 
-
-                  <button
+                    <button
                     type="button"
                     onClick={() =>
                       openSection("team")
@@ -165,6 +164,17 @@ const Navbar = () => {
                     className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
                   >
                     हमारी टीम
+                  </button>
+
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openSection("volunteer")
+                    }
+                    className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
+                  >
+                    सदस्यता
                   </button>
 
                 </div>
