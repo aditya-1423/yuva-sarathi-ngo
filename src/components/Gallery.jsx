@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   FaImages,
@@ -30,16 +30,20 @@ function Gallery() {
   const [slideIndex, setSlideIndex] = useState(0);
 
   // ==========================================
-  // FIRST 10 IMAGES ONLY FOR SLIDER
+  // ONLY FIRST 8 IMAGES FOR SLIDER
   // ==========================================
 
-  const sliderImages = images.slice(0, 10);
+  const sliderImages = useMemo(() => {
+    return images.slice(0, 8);
+  }, [images]);
 
   // ==========================================
   // LOAD GALLERY FROM FIREBASE
   // ==========================================
 
   useEffect(() => {
+    let mounted = true;
+
     const loadGallery = async () => {
       try {
         const galleryRef = collection(db, "gallery");
@@ -76,7 +80,9 @@ function Gallery() {
 
         galleryImages.sort((a, b) => {
           const getTime = (value) => {
-            if (!value) return 0;
+            if (!value) {
+              return 0;
+            }
 
             if (
               typeof value.toMillis === "function"
@@ -101,22 +107,30 @@ function Gallery() {
           );
         });
 
-        setImages(galleryImages);
+        if (mounted) {
+          setImages(galleryImages);
+        }
       } catch (error) {
         console.error(
           "Gallery load error:",
           error
         );
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadGallery();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ==========================================
-  // GET NUMBER OF VISIBLE SLIDES
+  // RESPONSIVE VISIBLE COUNT
   // ==========================================
 
   const getVisibleCount = () => {
@@ -136,6 +150,53 @@ function Gallery() {
   };
 
   // ==========================================
+  // VISIBLE COUNT
+  // ==========================================
+
+  const visibleCount = getVisibleCount();
+
+  // ==========================================
+  // REAL MAX INDEX
+  // ==========================================
+
+  const realMaxIndex = Math.max(
+    0,
+    sliderImages.length - visibleCount
+  );
+
+  // ==========================================
+  // LOOP SLIDES
+  //
+  // Example:
+  //
+  // [1 2 3 4 5 6 7 8]
+  // [1 2 3]
+  //
+  // Extra cloned slides are added at end.
+  // ==========================================
+
+  const loopImages = useMemo(() => {
+    if (sliderImages.length === 0) {
+      return [];
+    }
+
+    const cloneCount = Math.min(
+      visibleCount,
+      sliderImages.length
+    );
+
+    const clones = sliderImages.slice(
+      0,
+      cloneCount
+    );
+
+    return [
+      ...sliderImages,
+      ...clones,
+    ];
+  }, [sliderImages, visibleCount]);
+
+  // ==========================================
   // AUTO SLIDER
   // ==========================================
 
@@ -144,55 +205,62 @@ function Gallery() {
       showAll ||
       sliderImages.length <= 1
     ) {
-      return;
+      return undefined;
     }
 
-    const visibleCount =
-      getVisibleCount();
-
-    const maxIndex = Math.max(
-      0,
-      sliderImages.length - visibleCount
-    );
-
-    const interval = setInterval(() => {
-      setSlideIndex((previous) => {
-        if (previous >= maxIndex) {
-          return 0;
-        }
-
-        return previous + 1;
+    const timer = setInterval(() => {
+      setSlideIndex((current) => {
+        return current + 1;
       });
     }, 4000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(timer);
     };
-  }, [showAll, sliderImages.length]);
+  }, [
+    showAll,
+    sliderImages.length,
+  ]);
+
+  // ==========================================
+  // HANDLE LOOP RESET
+  //
+  // IMPORTANT:
+  // This uses requestAnimationFrame instead
+  // of directly calling setState inside effect.
+  // ==========================================
+
+  useEffect(() => {
+    if (
+      sliderImages.length === 0 ||
+      slideIndex < sliderImages.length
+    ) {
+      return undefined;
+    }
+
+    const resetTimer = window.setTimeout(() => {
+      setSlideIndex(0);
+    }, 750);
+
+    return () => {
+      window.clearTimeout(resetTimer);
+    };
+  }, [
+    slideIndex,
+    sliderImages.length,
+  ]);
 
   // ==========================================
   // NEXT SLIDE
   // ==========================================
 
   const nextSlide = () => {
-    if (sliderImages.length === 0) {
+    if (sliderImages.length <= 1) {
       return;
     }
 
-    const visibleCount =
-      getVisibleCount();
-
-    const maxIndex = Math.max(
-      0,
-      sliderImages.length - visibleCount
-    );
-
-    setSlideIndex((previous) => {
-      if (previous >= maxIndex) {
-        return 0;
-      }
-
-      return previous + 1;
+    setSlideIndex((current) => {
+      return current + 1;
     });
   };
 
@@ -201,25 +269,25 @@ function Gallery() {
   // ==========================================
 
   const previousSlide = () => {
-    if (sliderImages.length === 0) {
+    if (sliderImages.length <= 1) {
       return;
     }
 
-    const visibleCount =
-      getVisibleCount();
-
-    const maxIndex = Math.max(
-      0,
-      sliderImages.length - visibleCount
-    );
-
-    setSlideIndex((previous) => {
-      if (previous <= 0) {
-        return maxIndex;
+    setSlideIndex((current) => {
+      if (current <= 0) {
+        return realMaxIndex;
       }
 
-      return previous - 1;
+      return current - 1;
     });
+  };
+
+  // ==========================================
+  // DOT CLICK
+  // ==========================================
+
+  const goToSlide = (index) => {
+    setSlideIndex(index);
   };
 
   // ==========================================
@@ -248,11 +316,11 @@ function Gallery() {
       return;
     }
 
-    setSelectedIndex((previous) => {
+    setSelectedIndex((current) => {
       const newIndex =
-        previous === 0
+        current === 0
           ? images.length - 1
-          : previous - 1;
+          : current - 1;
 
       setSelectedImage(
         images[newIndex]
@@ -271,11 +339,11 @@ function Gallery() {
       return;
     }
 
-    setSelectedIndex((previous) => {
+    setSelectedIndex((current) => {
       const newIndex =
-        previous === images.length - 1
+        current === images.length - 1
           ? 0
-          : previous + 1;
+          : current + 1;
 
       setSelectedImage(
         images[newIndex]
@@ -291,51 +359,22 @@ function Gallery() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (
-        !selectedImage ||
-        images.length === 0
-      ) {
+      if (!selectedImage) {
         return;
       }
 
-      // ESC
       if (event.key === "Escape") {
         setSelectedImage(null);
         return;
       }
 
-      // LEFT
       if (event.key === "ArrowLeft") {
-        setSelectedIndex((previous) => {
-          const newIndex =
-            previous === 0
-              ? images.length - 1
-              : previous - 1;
-
-          setSelectedImage(
-            images[newIndex]
-          );
-
-          return newIndex;
-        });
-
+        previousImage();
         return;
       }
 
-      // RIGHT
       if (event.key === "ArrowRight") {
-        setSelectedIndex((previous) => {
-          const newIndex =
-            previous === images.length - 1
-              ? 0
-              : previous + 1;
-
-          setSelectedImage(
-            images[newIndex]
-          );
-
-          return newIndex;
-        });
+        nextImage();
       }
     };
 
@@ -373,19 +412,42 @@ function Gallery() {
     return (
       <section
         id="gallery"
-        className="py-24 bg-gradient-to-b from-white via-green-50 to-white"
+        className="
+          py-24
+          bg-gradient-to-b
+          from-white
+          via-green-50
+          to-white
+        "
       >
         <div className="max-w-7xl mx-auto px-5">
-
           <div className="text-center">
 
-            <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center shadow-lg">
-
+            <div
+              className="
+                w-20
+                h-20
+                mx-auto
+                rounded-full
+                bg-green-100
+                flex
+                items-center
+                justify-center
+                shadow-lg
+              "
+            >
               <FaImages className="text-4xl text-green-700" />
-
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-6">
+            <h2
+              className="
+                text-4xl
+                md:text-5xl
+                font-bold
+                text-green-800
+                mt-6
+              "
+            >
               📸 हमारी गैलरी
             </h2>
 
@@ -394,7 +456,6 @@ function Gallery() {
             </p>
 
           </div>
-
         </div>
       </section>
     );
@@ -408,9 +469,15 @@ function Gallery() {
     <>
       <section
         id="gallery"
-        className="py-24 bg-gradient-to-b from-white via-green-50 to-white overflow-hidden"
+        className="
+          py-24
+          bg-gradient-to-b
+          from-white
+          via-green-50
+          to-white
+          overflow-hidden
+        "
       >
-
         <div className="max-w-7xl mx-auto px-5">
 
           {/* ====================================
@@ -419,17 +486,44 @@ function Gallery() {
 
           <div className="text-center mb-14">
 
-            <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center shadow-xl">
-
+            <div
+              className="
+                w-20
+                h-20
+                mx-auto
+                rounded-full
+                bg-green-100
+                flex
+                items-center
+                justify-center
+                shadow-xl
+              "
+            >
               <FaImages className="text-4xl text-green-700" />
-
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-6">
+            <h2
+              className="
+                text-4xl
+                md:text-5xl
+                font-bold
+                text-green-800
+                mt-6
+              "
+            >
               📸 हमारी गैलरी
             </h2>
 
-            <p className="text-gray-600 mt-5 max-w-3xl mx-auto leading-8 text-lg">
+            <p
+              className="
+                text-gray-600
+                mt-5
+                max-w-3xl
+                mx-auto
+                leading-8
+                text-lg
+              "
+            >
               शिक्षा, स्वास्थ्य, पर्यावरण संरक्षण,
               समाज सेवा, रक्तदान, युवा कार्यक्रम
               एवं अन्य सामाजिक गतिविधियों की
@@ -445,13 +539,28 @@ function Gallery() {
           {images.length === 0 && (
             <div className="text-center py-12">
 
-              <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-
+              <div
+                className="
+                  w-20
+                  h-20
+                  mx-auto
+                  rounded-full
+                  bg-gray-100
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
                 <FaImages className="text-3xl text-gray-400" />
-
               </div>
 
-              <p className="text-gray-500 text-lg mt-5">
+              <p
+                className="
+                  text-gray-500
+                  text-lg
+                  mt-5
+                "
+              >
                 अभी गैलरी में कोई तस्वीर उपलब्ध नहीं है।
               </p>
 
@@ -468,20 +577,20 @@ function Gallery() {
 
                 <div className="relative">
 
-                  {/* LEFT */}
+                  {/* LEFT BUTTON */}
 
                   {sliderImages.length > 1 && (
                     <button
                       type="button"
                       onClick={previousSlide}
-                      aria-label="Previous"
+                      aria-label="Previous slide"
                       className="
                         absolute
                         left-1
                         md:left-0
                         top-1/2
                         -translate-y-1/2
-                        z-20
+                        z-30
                         w-12
                         h-12
                         rounded-full
@@ -493,32 +602,57 @@ function Gallery() {
                         text-green-700
                         hover:bg-green-700
                         hover:text-white
-                        transition
+                        transition-all
+                        duration-300
                       "
                     >
                       <FaChevronLeft />
                     </button>
                   )}
 
-                  {/* SLIDER */}
+                  {/* =================================
+                      SLIDER WINDOW
+                  ================================= */}
 
-                  <div className="overflow-hidden mx-4 md:mx-10">
+                  <div
+                    className="
+                      overflow-hidden
+                      mx-4
+                      md:mx-10
+                    "
+                  >
 
                     <div
-                      className="flex transition-transform duration-700 ease-in-out"
+                      className="
+                        flex
+                        will-change-transform
+                      "
                       style={{
-                        transform: `translateX(-${
+                        transform: `translate3d(-${
                           slideIndex *
-                          (100 /
-                            getVisibleCount())
-                        }%)`,
+                          (100 / visibleCount)
+                        }%, 0, 0)`,
+
+                        transition:
+                          slideIndex >=
+                          sliderImages.length
+                            ? "transform 750ms cubic-bezier(0.22, 1, 0.36, 1)"
+                            : "transform 750ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      }}
+                      onTransitionEnd={() => {
+                        if (
+                          slideIndex >=
+                          sliderImages.length
+                        ) {
+                          setSlideIndex(0);
+                        }
                       }}
                     >
 
-                      {sliderImages.map(
+                      {loopImages.map(
                         (item, index) => (
                           <div
-                            key={item.id}
+                            key={`${item.id}-${index}`}
                             className="
                               shrink-0
                               w-full
@@ -529,12 +663,16 @@ function Gallery() {
                           >
 
                             <div
-                              onClick={() =>
+                              onClick={() => {
+                                const realIndex =
+                                  index %
+                                  sliderImages.length;
+
                                 openImage(
                                   item,
-                                  index
-                                )
-                              }
+                                  realIndex
+                                );
+                              }}
                               className="
                                 group
                                 relative
@@ -552,22 +690,28 @@ function Gallery() {
                               <img
                                 src={item.image}
                                 alt={item.caption}
-                                loading="lazy"
+                                loading={
+                                  index < 3
+                                    ? "eager"
+                                    : "lazy"
+                                }
+                                decoding="async"
                                 className="
                                   w-full
                                   h-full
                                   object-cover
-                                  transition
+                                  transition-transform
                                   duration-700
-                                  group-hover:scale-110
+                                  ease-out
+                                  group-hover:scale-105
                                 "
-                                onError={(
-                                  event
-                                ) => {
+                                onError={(event) => {
                                   event.currentTarget.style.display =
                                     "none";
                                 }}
                               />
+
+                              {/* OVERLAY */}
 
                               <div
                                 className="
@@ -575,7 +719,7 @@ function Gallery() {
                                   inset-0
                                   bg-black/0
                                   group-hover:bg-black/50
-                                  transition
+                                  transition-all
                                   duration-500
                                   flex
                                   items-end
@@ -590,15 +734,19 @@ function Gallery() {
                                     opacity-0
                                     group-hover:translate-y-0
                                     group-hover:opacity-100
-                                    transition
+                                    transition-all
                                     duration-500
                                   "
                                 >
-
-                                  <p className="text-white font-semibold text-lg">
+                                  <p
+                                    className="
+                                      text-white
+                                      font-semibold
+                                      text-lg
+                                    "
+                                  >
                                     {item.caption}
                                   </p>
-
                                 </div>
 
                               </div>
@@ -613,20 +761,20 @@ function Gallery() {
 
                   </div>
 
-                  {/* RIGHT */}
+                  {/* RIGHT BUTTON */}
 
                   {sliderImages.length > 1 && (
                     <button
                       type="button"
                       onClick={nextSlide}
-                      aria-label="Next"
+                      aria-label="Next slide"
                       className="
                         absolute
                         right-1
                         md:right-0
                         top-1/2
                         -translate-y-1/2
-                        z-20
+                        z-30
                         w-12
                         h-12
                         rounded-full
@@ -638,7 +786,8 @@ function Gallery() {
                         text-green-700
                         hover:bg-green-700
                         hover:text-white
-                        transition
+                        transition-all
+                        duration-300
                       "
                     >
                       <FaChevronRight />
@@ -652,7 +801,14 @@ function Gallery() {
                 ================================= */}
 
                 {sliderImages.length > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
+                  <div
+                    className="
+                      flex
+                      justify-center
+                      gap-2
+                      mt-8
+                    "
+                  >
 
                     {sliderImages.map(
                       (_, index) => (
@@ -660,8 +816,11 @@ function Gallery() {
                           key={index}
                           type="button"
                           onClick={() =>
-                            setSlideIndex(index)
+                            goToSlide(index)
                           }
+                          aria-label={`Slide ${
+                            index + 1
+                          }`}
                           className={`
                             h-2.5
                             rounded-full
@@ -674,9 +833,6 @@ function Gallery() {
                                 : "w-2.5 bg-green-300"
                             }
                           `}
-                          aria-label={`Slide ${
-                            index + 1
-                          }`}
                         />
                       )
                     )}
@@ -688,15 +844,20 @@ function Gallery() {
                     VIEW ALL
                 ================================= */}
 
-                <div className="flex justify-center mt-12">
-
+                <div
+                  className="
+                    flex
+                    justify-center
+                    mt-12
+                  "
+                >
                   <button
                     type="button"
                     onClick={() => {
                       setShowAll(true);
                       setSlideIndex(0);
 
-                      setTimeout(() => {
+                      window.setTimeout(() => {
                         scrollToGallery();
                       }, 50);
                     }}
@@ -719,7 +880,6 @@ function Gallery() {
                   >
                     📸 View All
                   </button>
-
                 </div>
 
               </>
@@ -733,7 +893,15 @@ function Gallery() {
             images.length > 0 && (
               <>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                <div
+                  className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    lg:grid-cols-3
+                    gap-7
+                  "
+                >
 
                   {images.map(
                     (item, index) => (
@@ -763,17 +931,17 @@ function Gallery() {
                           src={item.image}
                           alt={item.caption}
                           loading="lazy"
+                          decoding="async"
                           className="
                             w-full
                             h-full
                             object-cover
-                            transition
+                            transition-transform
                             duration-700
-                            group-hover:scale-110
+                            ease-out
+                            group-hover:scale-105
                           "
-                          onError={(
-                            event
-                          ) => {
+                          onError={(event) => {
                             event.currentTarget.style.display =
                               "none";
                           }}
@@ -785,7 +953,7 @@ function Gallery() {
                             inset-0
                             bg-black/0
                             group-hover:bg-black/50
-                            transition
+                            transition-all
                             duration-500
                             flex
                             items-end
@@ -800,15 +968,19 @@ function Gallery() {
                               opacity-0
                               group-hover:translate-y-0
                               group-hover:opacity-100
-                              transition
+                              transition-all
                               duration-500
                             "
                           >
-
-                            <p className="text-white font-semibold text-lg">
+                            <p
+                              className="
+                                text-white
+                                font-semibold
+                                text-lg
+                              "
+                            >
                               {item.caption}
                             </p>
-
                           </div>
 
                         </div>
@@ -819,17 +991,22 @@ function Gallery() {
 
                 </div>
 
-                {/* BACK */}
+                {/* BACK BUTTON */}
 
-                <div className="flex justify-center mt-12">
-
+                <div
+                  className="
+                    flex
+                    justify-center
+                    mt-12
+                  "
+                >
                   <button
                     type="button"
                     onClick={() => {
                       setShowAll(false);
                       setSlideIndex(0);
 
-                      setTimeout(() => {
+                      window.setTimeout(() => {
                         scrollToGallery();
                       }, 50);
                     }}
@@ -853,7 +1030,6 @@ function Gallery() {
                   >
                     🔙 वापस स्लाइडर पर
                   </button>
-
                 </div>
 
               </>
@@ -865,11 +1041,9 @@ function Gallery() {
 
           {images.length > 0 && (
             <div className="text-center mt-10">
-
               <p className="text-gray-500 text-sm">
                 कुल {images.length} तस्वीरें उपलब्ध हैं
               </p>
-
             </div>
           )}
 
@@ -916,6 +1090,7 @@ function Gallery() {
               items-center
               justify-center
               text-xl
+              transition
             "
           >
             <FaTimes />
@@ -946,6 +1121,7 @@ function Gallery() {
                 items-center
                 justify-center
                 text-xl
+                transition
               "
             >
               <FaChevronLeft />
@@ -986,11 +1162,24 @@ function Gallery() {
 
             <div className="text-center mt-4">
 
-              <p className="text-white text-base md:text-lg font-medium">
+              <p
+                className="
+                  text-white
+                  text-base
+                  md:text-lg
+                  font-medium
+                "
+              >
                 {selectedImage.caption}
               </p>
 
-              <p className="text-white/60 text-sm mt-1">
+              <p
+                className="
+                  text-white/60
+                  text-sm
+                  mt-1
+                "
+              >
                 {selectedIndex + 1} /{" "}
                 {images.length}
               </p>
@@ -1024,6 +1213,7 @@ function Gallery() {
                 items-center
                 justify-center
                 text-xl
+                transition
               "
             >
               <FaChevronRight />

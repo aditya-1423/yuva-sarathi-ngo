@@ -20,30 +20,16 @@ import {
   query,
 } from "firebase/firestore";
 
-import {
-  getDownloadURL,
-  getStorage,
-  ref as storageRef,
-} from "firebase/storage";
-
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "firebase/auth";
-
 import { db } from "../firebase/firebase";
 
 /* =========================================================
    ADMIN EMAIL
-   =========================================================
-   IMPORTANT:
-   Yahan apne Firebase Admin Login wala EXACT email daalo.
 ========================================================= */
 
-const ADMIN_EMAIL = "admin@yuvasarathi.org";
+const ADMIN_EMAIL = "adityaverma1325@gmail.com";
 
 /* =========================================================
-   MAXIMUM IMAGES
+   MAXIMUM EVENT IMAGES
 ========================================================= */
 
 const MAX_EVENT_IMAGES = 5;
@@ -90,36 +76,70 @@ const getRawEventImages = (event) => {
 
   let images = [];
 
+  /*
+    NEW EVENT FORMAT
+    createEvent() में images galleryImages के अंदर save हो रही हैं।
+  */
+
   if (
+    Array.isArray(event.galleryImages) &&
+    event.galleryImages.length > 0
+  ) {
+    images = event.galleryImages;
+  }
+
+  /* OLD / OTHER FORMATS */
+
+  else if (
     Array.isArray(event.imageUrls) &&
     event.imageUrls.length > 0
   ) {
     images = event.imageUrls;
-  } else if (
+  }
+
+  else if (
     Array.isArray(event.images) &&
     event.images.length > 0
   ) {
     images = event.images;
-  } else if (
+  }
+
+  else if (
     Array.isArray(event.photos) &&
     event.photos.length > 0
   ) {
     images = event.photos;
-  } else if (event.imageUrl) {
+  }
+
+  else if (event.imageUrl) {
     images = [event.imageUrl];
-  } else if (event.imageURL) {
+  }
+
+  else if (event.imageURL) {
     images = [event.imageURL];
-  } else if (event.image) {
+  }
+
+  else if (event.image) {
     images = [event.image];
-  } else if (event.photo) {
+  }
+
+  else if (event.photo) {
     images = [event.photo];
-  } else if (event.img) {
+  }
+
+  else if (event.img) {
     images = [event.img];
-  } else if (event.photoUrl) {
+  }
+
+  else if (event.photoUrl) {
     images = [event.photoUrl];
-  } else if (event.photoURL) {
+  }
+
+  else if (event.photoURL) {
     images = [event.photoURL];
-  } else if (
+  }
+
+  else if (
     event.file &&
     typeof event.file === "object"
   ) {
@@ -149,54 +169,6 @@ const isNormalImageUrl = (value) => {
     cleanValue.startsWith("data:image/") ||
     cleanValue.startsWith("blob:")
   );
-};
-
-/* =========================================================
-   RESOLVE IMAGE URL
-========================================================= */
-
-const resolveImageUrl = async (value, storage) => {
-  if (!value) {
-    return null;
-  }
-
-  const cleanValue = String(value).trim();
-
-  if (!cleanValue) {
-    return null;
-  }
-
-  /* Normal URL */
-
-  if (isNormalImageUrl(cleanValue)) {
-    return cleanValue;
-  }
-
-  /* Firebase Storage path */
-
-  try {
-    if (!storage) {
-      return null;
-    }
-
-    const imageRef = storageRef(
-      storage,
-      cleanValue
-    );
-
-    const downloadUrl =
-      await getDownloadURL(imageRef);
-
-    return downloadUrl;
-  } catch (error) {
-    console.warn(
-      "Firebase Storage image resolve failed:",
-      cleanValue,
-      error
-    );
-
-    return null;
-  }
 };
 
 /* =========================================================
@@ -291,11 +263,17 @@ const formatDate = (value) => {
       typeof value.toDate === "function"
     ) {
       date = value.toDate();
-    } else if (value instanceof Date) {
+    }
+
+    else if (value instanceof Date) {
       date = value;
-    } else if (typeof value === "number") {
+    }
+
+    else if (typeof value === "number") {
       date = new Date(value);
-    } else if (typeof value === "string") {
+    }
+
+    else if (typeof value === "string") {
       const match = value.match(
         /^(\d{4})-(\d{2})-(\d{2})$/
       );
@@ -306,10 +284,14 @@ const formatDate = (value) => {
           Number(match[2]) - 1,
           Number(match[3])
         );
-      } else {
+      }
+
+      else {
         date = new Date(value);
       }
-    } else {
+    }
+
+    else {
       date = new Date(value);
     }
 
@@ -328,7 +310,9 @@ const formatDate = (value) => {
         year: "numeric",
       }
     );
-  } catch (error) {
+  }
+
+  catch (error) {
     console.error(
       "Date formatting error:",
       error
@@ -343,6 +327,7 @@ const formatDate = (value) => {
 ========================================================= */
 
 const Events = () => {
+
   /* =======================================================
      STATES
   ======================================================= */
@@ -369,30 +354,48 @@ const Events = () => {
   ======================================================= */
 
   useEffect(() => {
-    const auth = getAuth();
 
-    const unsubscribe =
-      onAuthStateChanged(
-        auth,
-        (user) => {
-          const userEmail =
-            user?.email?.toLowerCase() || "";
+    /*
+      Firebase auth instance
+      उसी Firebase project से आएगा।
+    */
 
-          const adminEmail =
-            ADMIN_EMAIL.toLowerCase();
+    import("firebase/auth").then(
+      ({
+        getAuth,
+        onAuthStateChanged,
+      }) => {
 
-          setIsAdmin(
-            Boolean(
-              userEmail &&
-              userEmail === adminEmail
-            )
+        const auth = getAuth();
+
+        const unsubscribe =
+          onAuthStateChanged(
+            auth,
+            (user) => {
+
+              const userEmail =
+                user?.email
+                  ?.toLowerCase()
+                  ?.trim() || "";
+
+              const adminEmail =
+                ADMIN_EMAIL
+                  .toLowerCase()
+                  .trim();
+
+              setIsAdmin(
+                Boolean(
+                  userEmail &&
+                  userEmail === adminEmail
+                )
+              );
+            }
           );
-        }
-      );
 
-    return () => {
-      unsubscribe();
-    };
+        return unsubscribe;
+      }
+    );
+
   }, []);
 
   /* =======================================================
@@ -400,123 +403,96 @@ const Events = () => {
   ======================================================= */
 
   useEffect(() => {
-    let cancelled = false;
 
-    const loadEvents = async () => {
-      try {
-        const storage = getStorage();
+    let unsubscribe = null;
 
-        const eventsRef =
-          collection(db, "events");
+    const eventsRef =
+      collection(
+        db,
+        "events"
+      );
 
-        const eventsQuery = query(
-          eventsRef,
-          orderBy("createdAt", "desc")
-        );
+    const eventsQuery =
+      query(
+        eventsRef,
+        orderBy(
+          "createdAt",
+          "desc"
+        )
+      );
 
-        const unsubscribe =
-          onSnapshot(
-            eventsQuery,
-            async (snapshot) => {
-              try {
-                const eventPromises =
-                  snapshot.docs.map(
-                    async (eventDoc) => {
-                      const data =
-                        eventDoc.data();
+    unsubscribe =
+      onSnapshot(
+        eventsQuery,
+        (snapshot) => {
 
-                      const rawImages =
-                        getRawEventImages(
-                          data
-                        );
+          try {
 
-                      const resolvedImages =
-                        await Promise.all(
-                          rawImages.map(
-                            (image) =>
-                              resolveImageUrl(
-                                image,
-                                storage
-                              )
-                          )
-                        );
+            const eventData =
+              snapshot.docs.map(
+                (eventDoc) => {
 
-                      return {
-                        id: eventDoc.id,
-                        ...data,
-                        resolvedImages:
-                          resolvedImages
-                            .filter(Boolean)
-                            .slice(
-                              0,
-                              MAX_EVENT_IMAGES
-                            ),
-                      };
-                    }
-                  );
+                  const data =
+                    eventDoc.data();
 
-                const eventData =
-                  await Promise.all(
-                    eventPromises
-                  );
+                  const rawImages =
+                    getRawEventImages(
+                      data
+                    );
 
-                if (!cancelled) {
-                  setEvents(eventData);
+                  return {
+                    id: eventDoc.id,
+                    ...data,
+
+                    resolvedImages:
+                      rawImages
+                        .filter(
+                          isNormalImageUrl
+                        )
+                        .slice(
+                          0,
+                          MAX_EVENT_IMAGES
+                        ),
+                  };
                 }
-              } catch (error) {
-                console.error(
-                  "Events processing error:",
-                  error
-                );
-
-                if (!cancelled) {
-                  setEvents([]);
-                }
-              }
-            },
-            (error) => {
-              console.error(
-                "Events fetch error:",
-                error
               );
 
-              if (!cancelled) {
-                setEvents([]);
-              }
-            }
+            setEvents(
+              eventData
+            );
+
+          }
+
+          catch (error) {
+
+            console.error(
+              "Events processing error:",
+              error
+            );
+
+            setEvents([]);
+          }
+        },
+
+        (error) => {
+
+          console.error(
+            "Events fetch error:",
+            error
           );
 
-        return unsubscribe;
-      } catch (error) {
-        console.error(
-          "Firebase Events initialization error:",
-          error
-        );
-
-        if (!cancelled) {
           setEvents([]);
         }
-
-        return null;
-      }
-    };
-
-    let unsubscribeFunction = null;
-
-    loadEvents().then(
-      (unsubscribe) => {
-        unsubscribeFunction =
-          unsubscribe;
-      }
-    );
+      );
 
     return () => {
-      cancelled = true;
 
-      if (unsubscribeFunction) {
-        unsubscribeFunction();
+      if (unsubscribe) {
+        unsubscribe();
       }
+
     };
+
   }, []);
 
   /* =======================================================
@@ -524,9 +500,18 @@ const Events = () => {
   ======================================================= */
 
   const openEvent = (event) => {
-    setSelectedEvent(event);
-    setCurrentImageIndex(0);
-    setFullImage(null);
+
+    setSelectedEvent(
+      event
+    );
+
+    setCurrentImageIndex(
+      0
+    );
+
+    setFullImage(
+      null
+    );
   };
 
   /* =======================================================
@@ -534,9 +519,18 @@ const Events = () => {
   ======================================================= */
 
   const closeEvent = () => {
-    setSelectedEvent(null);
-    setCurrentImageIndex(0);
-    setFullImage(null);
+
+    setSelectedEvent(
+      null
+    );
+
+    setCurrentImageIndex(
+      0
+    );
+
+    setFullImage(
+      null
+    );
   };
 
   /* =======================================================
@@ -544,19 +538,25 @@ const Events = () => {
   ======================================================= */
 
   const nextImage = () => {
+
     if (!selectedEvent) {
       return;
     }
 
     const images =
-      getEventImages(selectedEvent);
+      getEventImages(
+        selectedEvent
+      );
 
-    if (images.length <= 1) {
+    if (
+      images.length <= 1
+    ) {
       return;
     }
 
     setCurrentImageIndex(
       (previousIndex) => {
+
         if (
           previousIndex >=
           images.length - 1
@@ -574,20 +574,28 @@ const Events = () => {
   ======================================================= */
 
   const previousImage = () => {
+
     if (!selectedEvent) {
       return;
     }
 
     const images =
-      getEventImages(selectedEvent);
+      getEventImages(
+        selectedEvent
+      );
 
-    if (images.length <= 1) {
+    if (
+      images.length <= 1
+    ) {
       return;
     }
 
     setCurrentImageIndex(
       (previousIndex) => {
-        if (previousIndex <= 0) {
+
+        if (
+          previousIndex <= 0
+        ) {
           return images.length - 1;
         }
 
@@ -600,14 +608,16 @@ const Events = () => {
      DELETE EVENT
   ======================================================= */
 
-  const deleteEvent = async (event) => {
+  const deleteEvent = async (
+    event
+  ) => {
+
     /*
-      Extra protection:
-      normal visitor directly function call
-      bhi kare to delete nahi hoga.
+      Extra protection
     */
 
     if (!isAdmin) {
+
       window.alert(
         "केवल Admin कार्यक्रम हटा सकता है।"
       );
@@ -631,7 +641,14 @@ const Events = () => {
     }
 
     try {
-      setDeletingId(event.id);
+
+      setDeletingId(
+        event.id
+      );
+
+      /*
+        Firestore से event delete
+      */
 
       await deleteDoc(
         doc(
@@ -645,23 +662,31 @@ const Events = () => {
         Local UI update
       */
 
-      setEvents((previousEvents) => {
-        if (!Array.isArray(previousEvents)) {
-          return previousEvents;
-        }
+      setEvents(
+        (previousEvents) => {
 
-        return previousEvents.filter(
-          (item) =>
-            item.id !== event.id
-        );
-      });
+          if (
+            !Array.isArray(
+              previousEvents
+            )
+          ) {
+            return previousEvents;
+          }
+
+          return previousEvents.filter(
+            (item) =>
+              item.id !== event.id
+          );
+        }
+      );
 
       /*
-        Agar same event modal me open hai
+        अगर modal में वही event खुला है
       */
 
       setSelectedEvent(
         (previousEvent) => {
+
           if (
             previousEvent?.id ===
             event.id
@@ -673,9 +698,18 @@ const Events = () => {
         }
       );
 
-      setCurrentImageIndex(0);
-      setFullImage(null);
-    } catch (error) {
+      setCurrentImageIndex(
+        0
+      );
+
+      setFullImage(
+        null
+      );
+
+    }
+
+    catch (error) {
+
       console.error(
         "Delete event error:",
         error
@@ -684,8 +718,14 @@ const Events = () => {
       window.alert(
         "कार्यक्रम हटाया नहीं जा सका। कृपया दोबारा कोशिश करें।"
       );
-    } finally {
-      setDeletingId(null);
+
+    }
+
+    finally {
+
+      setDeletingId(
+        null
+      );
     }
   };
 
@@ -696,10 +736,12 @@ const Events = () => {
   const handleImageError = (
     imageEvent
   ) => {
+
     const image =
       imageEvent.currentTarget;
 
-    image.style.display = "none";
+    image.style.display =
+      "none";
 
     const fallback =
       image.parentElement?.querySelector(
@@ -707,7 +749,9 @@ const Events = () => {
       );
 
     if (fallback) {
-      fallback.style.display = "flex";
+
+      fallback.style.display =
+        "flex";
     }
   };
 
@@ -716,44 +760,79 @@ const Events = () => {
   ======================================================= */
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (fullImage) {
-        if (event.key === "Escape") {
-          setFullImage(null);
+
+    const handleKeyDown =
+      (event) => {
+
+        if (fullImage) {
+
+          if (
+            event.key ===
+            "Escape"
+          ) {
+
+            setFullImage(
+              null
+            );
+
+            return;
+          }
+
+          if (
+            event.key ===
+            "ArrowRight"
+          ) {
+
+            nextImage();
+
+            return;
+          }
+
+          if (
+            event.key ===
+            "ArrowLeft"
+          ) {
+
+            previousImage();
+
+            return;
+          }
+
           return;
         }
 
-        if (event.key === "ArrowRight") {
+        if (!selectedEvent) {
+          return;
+        }
+
+        if (
+          event.key ===
+          "Escape"
+        ) {
+
+          closeEvent();
+
+          return;
+        }
+
+        if (
+          event.key ===
+          "ArrowRight"
+        ) {
+
           nextImage();
+
           return;
         }
 
-        if (event.key === "ArrowLeft") {
+        if (
+          event.key ===
+          "ArrowLeft"
+        ) {
+
           previousImage();
-          return;
         }
-
-        return;
-      }
-
-      if (!selectedEvent) {
-        return;
-      }
-
-      if (event.key === "Escape") {
-        closeEvent();
-        return;
-      }
-
-      if (event.key === "ArrowRight") {
-        nextImage();
-        return;
-      }
-
-      if (event.key === "ArrowLeft") {
-        previousImage();
-      }
-    };
+      };
 
     window.addEventListener(
       "keydown",
@@ -761,11 +840,14 @@ const Events = () => {
     );
 
     return () => {
+
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
+
     };
+
   });
 
   /* =======================================================
@@ -773,11 +855,14 @@ const Events = () => {
   ======================================================= */
 
   if (events === null) {
+
     return (
+
       <section
         id="events"
         className="min-h-screen pt-24 pb-20 bg-gradient-to-b from-green-50 to-white"
       >
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="text-center mb-12">
@@ -797,13 +882,16 @@ const Events = () => {
           </div>
 
           <div className="flex justify-center py-20">
+
             <Loader2
               size={42}
               className="animate-spin text-green-600"
             />
+
           </div>
 
         </div>
+
       </section>
     );
   }
@@ -813,7 +901,9 @@ const Events = () => {
   ======================================================= */
 
   return (
+
     <>
+
       <section
         id="events"
         className="min-h-screen pt-24 pb-20 bg-gradient-to-b from-green-50 to-white"
@@ -843,6 +933,7 @@ const Events = () => {
           {/* NO EVENTS */}
 
           {events.length === 0 && (
+
             <div className="max-w-2xl mx-auto text-center bg-white rounded-3xl shadow-md border border-green-100 p-10 sm:p-14">
 
               <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-5">
@@ -868,62 +959,109 @@ const Events = () => {
           {/* EVENTS */}
 
           {events.length > 0 && (
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-8">
 
-              {events.map((event) => {
-                const images =
-                  getEventImages(event);
+              {events.map(
+                (event) => {
 
-                const title =
-                  getTitle(event);
+                  const images =
+                    getEventImages(
+                      event
+                    );
 
-                const description =
-                  getDescription(event);
+                  const title =
+                    getTitle(
+                      event
+                    );
 
-                const date =
-                  getDate(event);
+                  const description =
+                    getDescription(
+                      event
+                    );
 
-                const location =
-                  getLocation(event);
+                  const date =
+                    getDate(
+                      event
+                    );
 
-                const mainImage =
-                  images[0] || null;
+                  const location =
+                    getLocation(
+                      event
+                    );
 
-                return (
-                  <article
-                    key={event.id}
-                    className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 flex flex-col h-full"
-                  >
+                  const mainImage =
+                    images[0] ||
+                    null;
 
-                    {/* ===================================
-                        CARD IMAGE
-                    =================================== */}
+                  return (
 
-                    <div className="relative w-full h-56 sm:h-64 bg-gray-100 overflow-hidden">
+                    <article
+                      key={
+                        event.id
+                      }
+                      className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 flex flex-col h-full"
+                    >
 
-                      {mainImage ? (
-                        <div className="relative w-full h-full">
+                      {/* CARD IMAGE */}
 
-                          <img
-                            src={mainImage}
-                            alt={title}
-                            onError={
-                              handleImageError
-                            }
-                            className="w-full h-full object-cover"
-                          />
+                      <div className="relative w-full h-56 sm:h-64 bg-gray-100 overflow-hidden">
 
-                          <div
-                            data-image-fallback
-                            style={{
-                              display: "none",
-                            }}
-                            className="absolute inset-0 items-center justify-center bg-green-50"
-                          >
+                        {mainImage ? (
+
+                          <div className="relative w-full h-full">
+
+                            <img
+                              src={
+                                mainImage
+                              }
+                              alt={
+                                title
+                              }
+                              onError={
+                                handleImageError
+                              }
+                              className="w-full h-full object-cover"
+                            />
+
+                            <div
+                              data-image-fallback
+                              style={{
+                                display:
+                                  "none",
+                              }}
+                              className="absolute inset-0 items-center justify-center bg-green-50"
+                            >
+
+                              <div className="text-center">
+
+                                <ImageIcon
+                                  size={
+                                    48
+                                  }
+                                  className="mx-auto text-green-500"
+                                />
+
+                                <p className="mt-2 text-green-700 font-medium">
+                                  कार्यक्रम की तस्वीर
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+                        ) : (
+
+                          <div className="w-full h-full flex items-center justify-center bg-green-50">
+
                             <div className="text-center">
 
                               <ImageIcon
-                                size={48}
+                                size={
+                                  48
+                                }
                                 className="mx-auto text-green-500"
                               />
 
@@ -932,159 +1070,176 @@ const Events = () => {
                               </p>
 
                             </div>
-                          </div>
-
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-green-50">
-
-                          <div className="text-center">
-
-                            <ImageIcon
-                              size={48}
-                              className="mx-auto text-green-500"
-                            />
-
-                            <p className="mt-2 text-green-700 font-medium">
-                              कार्यक्रम की तस्वीर
-                            </p>
 
                           </div>
-
-                        </div>
-                      )}
-
-                      {/* PHOTO COUNT */}
-
-                      {images.length > 1 && (
-                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
-                          📷 {images.length} तस्वीरें
-                        </div>
-                      )}
-
-                      {/* PROGRAM TAG */}
-
-                      <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-medium">
-                        कार्यक्रम
-                      </div>
-
-                    </div>
-
-                    {/* ===================================
-                        CARD CONTENT
-                    =================================== */}
-
-                    <div className="p-6 sm:p-7 flex flex-col flex-1">
-
-                      <h3 className="text-xl sm:text-2xl font-bold text-green-700 leading-tight mb-5">
-                        {title}
-                      </h3>
-
-                      {/* DATE */}
-
-                      <div className="flex items-start gap-3 mb-3">
-
-                        <CalendarDays
-                          size={20}
-                          className="text-orange-500 shrink-0 mt-0.5"
-                        />
-
-                        <span className="text-gray-700">
-                          {formatDate(date)}
-                        </span>
-
-                      </div>
-
-                      {/* LOCATION */}
-
-                      <div className="flex items-start gap-3 mb-4">
-
-                        <MapPin
-                          size={20}
-                          className="text-red-500 shrink-0 mt-0.5"
-                        />
-
-                        <span className="text-gray-700">
-                          {location}
-                        </span>
-
-                      </div>
-
-                      {/* DESCRIPTION */}
-
-                      <p className="text-gray-600 leading-relaxed text-sm sm:text-base mb-6 line-clamp-3">
-                        {description}
-                      </p>
-
-                      {/* =================================
-                          BUTTONS
-                      ================================= */}
-
-                      <div className="mt-auto flex gap-2">
-
-                        {/* DETAILS */}
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openEvent(event)
-                          }
-                          className="flex-1 flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white py-3 px-5 rounded-xl font-semibold transition-all duration-200"
-                        >
-                          विवरण देखें
-
-                          <ChevronRight
-                            size={18}
-                          />
-                        </button>
-
-                        {/* =================================
-                            DELETE
-                            ONLY ADMIN
-                        ================================= */}
-
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            disabled={
-                              deletingId ===
-                              event.id
-                            }
-                            onClick={() =>
-                              deleteEvent(event)
-                            }
-                            title="कार्यक्रम हटाएं"
-                            aria-label="कार्यक्रम हटाएं"
-                            className="w-14 shrink-0 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-
-                            {deletingId ===
-                            event.id ? (
-                              <Loader2
-                                size={20}
-                                className="animate-spin"
-                              />
-                            ) : (
-                              <Trash2
-                                size={20}
-                              />
-                            )}
-
-                          </button>
                         )}
 
+                        {/* PHOTO COUNT */}
+
+                        {images.length >
+                          1 && (
+
+                          <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
+
+                            📷{" "}
+                            {
+                              images.length
+                            }{" "}
+                            तस्वीरें
+
+                          </div>
+                        )}
+
+                        {/* PROGRAM TAG */}
+
+                        <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-medium">
+                          कार्यक्रम
+                        </div>
+
                       </div>
 
-                    </div>
+                      {/* CARD CONTENT */}
 
-                  </article>
-                );
-              })}
+                      <div className="p-6 sm:p-7 flex flex-col flex-1">
+
+                        <h3 className="text-xl sm:text-2xl font-bold text-green-700 leading-tight mb-5">
+                          {
+                            title
+                          }
+                        </h3>
+
+                        {/* DATE */}
+
+                        <div className="flex items-start gap-3 mb-3">
+
+                          <CalendarDays
+                            size={
+                              20
+                            }
+                            className="text-orange-500 shrink-0 mt-0.5"
+                          />
+
+                          <span className="text-gray-700">
+                            {
+                              formatDate(
+                                date
+                              )
+                            }
+                          </span>
+
+                        </div>
+
+                        {/* LOCATION */}
+
+                        <div className="flex items-start gap-3 mb-4">
+
+                          <MapPin
+                            size={
+                              20
+                            }
+                            className="text-red-500 shrink-0 mt-0.5"
+                          />
+
+                          <span className="text-gray-700">
+                            {
+                              location
+                            }
+                          </span>
+
+                        </div>
+
+                        {/* DESCRIPTION */}
+
+                        <p className="text-gray-600 leading-relaxed text-sm sm:text-base mb-6 line-clamp-3">
+                          {
+                            description
+                          }
+                        </p>
+
+                        {/* BUTTONS */}
+
+                        <div className="mt-auto flex gap-2">
+
+                          {/* DETAILS */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openEvent(
+                                event
+                              )
+                            }
+                            className="flex-1 flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white py-3 px-5 rounded-xl font-semibold transition-all duration-200"
+                          >
+
+                            विवरण देखें
+
+                            <ChevronRight
+                              size={
+                                18
+                              }
+                            />
+
+                          </button>
+
+                          {/* DELETE - ADMIN ONLY */}
+
+                          {isAdmin && (
+
+                            <button
+                              type="button"
+                              disabled={
+                                deletingId ===
+                                event.id
+                              }
+                              onClick={() =>
+                                deleteEvent(
+                                  event
+                                )
+                              }
+                              title="कार्यक्रम हटाएं"
+                              aria-label="कार्यक्रम हटाएं"
+                              className="w-14 shrink-0 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+
+                              {deletingId ===
+                              event.id ? (
+
+                                <Loader2
+                                  size={
+                                    20
+                                  }
+                                  className="animate-spin"
+                                />
+
+                              ) : (
+
+                                <Trash2
+                                  size={
+                                    20
+                                  }
+                                />
+
+                              )}
+
+                            </button>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    </article>
+                  );
+                }
+              )}
 
             </div>
           )}
 
         </div>
+
       </section>
 
       {/* ==================================================
@@ -1092,9 +1247,12 @@ const Events = () => {
       ================================================== */}
 
       {selectedEvent && (
+
         <div
           className="fixed inset-0 z-[9998] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
-          onClick={closeEvent}
+          onClick={
+            closeEvent
+          }
         >
 
           <div
@@ -1108,18 +1266,21 @@ const Events = () => {
 
             <button
               type="button"
-              onClick={closeEvent}
+              onClick={
+                closeEvent
+              }
               aria-label="Close"
               className="absolute top-4 right-4 z-40 w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition"
             >
+
               <X size={22} />
+
             </button>
 
-            {/* ==========================================
-                MANUAL IMAGE SLIDER
-            ========================================== */}
+            {/* IMAGE SLIDER */}
 
             {(() => {
+
               const images =
                 getEventImages(
                   selectedEvent
@@ -1134,9 +1295,12 @@ const Events = () => {
                   : 0;
 
               const currentImage =
-                images[safeIndex] || null;
+                images[
+                  safeIndex
+                ] || null;
 
               return (
+
                 <div>
 
                   {/* MAIN IMAGE */}
@@ -1144,13 +1308,18 @@ const Events = () => {
                   <div className="relative bg-black w-full h-[280px] sm:h-[420px] lg:h-[520px] flex items-center justify-center overflow-hidden">
 
                     {currentImage ? (
+
                       <div className="relative w-full h-full flex items-center justify-center">
 
                         <img
-                          src={currentImage}
-                          alt={getTitle(
-                            selectedEvent
-                          )}
+                          src={
+                            currentImage
+                          }
+                          alt={
+                            getTitle(
+                              selectedEvent
+                            )
+                          }
                           onError={
                             handleImageError
                           }
@@ -1165,7 +1334,8 @@ const Events = () => {
                         <div
                           data-image-fallback
                           style={{
-                            display: "none",
+                            display:
+                              "none",
                           }}
                           className="absolute inset-0 items-center justify-center bg-black text-white"
                         >
@@ -1173,7 +1343,9 @@ const Events = () => {
                           <div className="text-center">
 
                             <ImageIcon
-                              size={60}
+                              size={
+                                60
+                              }
                               className="mx-auto mb-3 opacity-70"
                             />
 
@@ -1186,11 +1358,15 @@ const Events = () => {
                         </div>
 
                       </div>
+
                     ) : (
+
                       <div className="text-white text-center">
 
                         <ImageIcon
-                          size={60}
+                          size={
+                            60
+                          }
                           className="mx-auto mb-3 opacity-70"
                         />
 
@@ -1203,7 +1379,9 @@ const Events = () => {
 
                     {/* PREVIOUS */}
 
-                    {images.length > 1 && (
+                    {images.length >
+                      1 && (
+
                       <button
                         type="button"
                         aria-label="Previous image"
@@ -1212,15 +1390,21 @@ const Events = () => {
                         }
                         className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition z-20"
                       >
+
                         <ChevronLeft
-                          size={28}
+                          size={
+                            28
+                          }
                         />
+
                       </button>
                     )}
 
                     {/* NEXT */}
 
-                    {images.length > 1 && (
+                    {images.length >
+                      1 && (
+
                       <button
                         type="button"
                         aria-label="Next image"
@@ -1229,33 +1413,51 @@ const Events = () => {
                         }
                         className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition z-20"
                       >
+
                         <ChevronRight
-                          size={28}
+                          size={
+                            28
+                          }
                         />
+
                       </button>
                     )}
 
                     {/* COUNTER */}
 
-                    {images.length > 0 && (
+                    {images.length >
+                      0 && (
+
                       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm z-20">
-                        {safeIndex + 1}
+
+                        {
+                          safeIndex + 1
+                        }
+
                         {" / "}
-                        {images.length}
+
+                        {
+                          images.length
+                        }
+
                       </div>
                     )}
 
                   </div>
 
-                  {/* =====================================
-                      THUMBNAILS
-                  ===================================== */}
+                  {/* THUMBNAILS */}
 
-                  {images.length > 1 && (
+                  {images.length >
+                    1 && (
+
                     <div className="flex gap-2 p-3 overflow-x-auto bg-gray-100">
 
                       {images.map(
-                        (image, index) => (
+                        (
+                          image,
+                          index
+                        ) => (
+
                           <button
                             key={`${image}-${index}`}
                             type="button"
@@ -1276,7 +1478,9 @@ const Events = () => {
                           >
 
                             <img
-                              src={image}
+                              src={
+                                image
+                              }
                               alt={`तस्वीर ${
                                 index + 1
                               }`}
@@ -1295,18 +1499,19 @@ const Events = () => {
 
                 </div>
               );
+
             })()}
 
-            {/* ==========================================
-                EVENT INFORMATION
-            ========================================== */}
+            {/* EVENT INFORMATION */}
 
             <div className="p-6 sm:p-8">
 
               <h2 className="text-2xl sm:text-3xl font-bold text-green-700 mb-5">
-                {getTitle(
-                  selectedEvent
-                )}
+                {
+                  getTitle(
+                    selectedEvent
+                  )
+                }
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -1316,7 +1521,9 @@ const Events = () => {
                 <div className="flex items-center gap-3 bg-orange-50 rounded-xl p-4">
 
                   <CalendarDays
-                    size={22}
+                    size={
+                      22
+                    }
                     className="text-orange-500"
                   />
 
@@ -1327,11 +1534,13 @@ const Events = () => {
                     </p>
 
                     <p className="font-semibold text-gray-800">
-                      {formatDate(
-                        getDate(
-                          selectedEvent
+                      {
+                        formatDate(
+                          getDate(
+                            selectedEvent
+                          )
                         )
-                      )}
+                      }
                     </p>
 
                   </div>
@@ -1343,7 +1552,9 @@ const Events = () => {
                 <div className="flex items-center gap-3 bg-red-50 rounded-xl p-4">
 
                   <MapPin
-                    size={22}
+                    size={
+                      22
+                    }
                     className="text-red-500"
                   />
 
@@ -1354,9 +1565,11 @@ const Events = () => {
                     </p>
 
                     <p className="font-semibold text-gray-800">
-                      {getLocation(
-                        selectedEvent
-                      )}
+                      {
+                        getLocation(
+                          selectedEvent
+                        )
+                      }
                     </p>
 
                   </div>
@@ -1374,9 +1587,11 @@ const Events = () => {
                 </h3>
 
                 <p className="text-gray-600 leading-8">
-                  {getDescription(
-                    selectedEvent
-                  )}
+                  {
+                    getDescription(
+                      selectedEvent
+                    )
+                  }
                 </p>
 
               </div>
@@ -1397,10 +1612,13 @@ const Events = () => {
       ================================================== */}
 
       {fullImage && (
+
         <div
           className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center p-4"
           onClick={() =>
-            setFullImage(null)
+            setFullImage(
+              null
+            )
           }
         >
 
@@ -1409,12 +1627,16 @@ const Events = () => {
           <button
             type="button"
             onClick={() =>
-              setFullImage(null)
+              setFullImage(
+                null
+              )
             }
             aria-label="Close image"
             className="absolute top-5 right-5 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
           >
+
             <X size={25} />
+
           </button>
 
           {/* PREVIOUS */}
@@ -1423,27 +1645,38 @@ const Events = () => {
             getEventImages(
               selectedEvent
             ).length > 1 && (
+
               <button
                 type="button"
-                onClick={(event) => {
+                onClick={(
+                  event
+                ) => {
+
                   event.stopPropagation();
+
                   previousImage();
                 }}
                 aria-label="Previous image"
                 className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
               >
+
                 <ChevronLeft
                   size={30}
                 />
+
               </button>
             )}
 
           {/* FULL IMAGE */}
 
           <img
-            src={fullImage}
+            src={
+              fullImage
+            }
             alt="कार्यक्रम की तस्वीर"
-            onClick={(event) =>
+            onClick={(
+              event
+            ) =>
               event.stopPropagation()
             }
             onError={
@@ -1458,23 +1691,31 @@ const Events = () => {
             getEventImages(
               selectedEvent
             ).length > 1 && (
+
               <button
                 type="button"
-                onClick={(event) => {
+                onClick={(
+                  event
+                ) => {
+
                   event.stopPropagation();
+
                   nextImage();
                 }}
                 aria-label="Next image"
                 className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
               >
+
                 <ChevronRight
                   size={30}
                 />
+
               </button>
             )}
 
         </div>
       )}
+
     </>
   );
 };
