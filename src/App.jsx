@@ -14,7 +14,7 @@ import Donate from "./components/Donate";
 import Contact from "./components/Contact";
 
 import Footer from "./components/Footer";
-import WhatsAppButton from "./components/WhatsAppButton";
+// import WhatsAppButton from "./components/WhatsAppButton";
 
 import AdminLogin from "./pages/AdminLogin";
 
@@ -304,7 +304,7 @@ function App() {
 
       {/* WHATSAPP */}
 
-      <WhatsAppButton />
+      {/* <WhatsAppButton /> */}
 
 
       {/* ADMIN ACCESS */}

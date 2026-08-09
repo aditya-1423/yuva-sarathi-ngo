@@ -74,7 +74,7 @@ function Hero() {
 
             <div>
               <h3 className="text-3xl font-bold text-gray-800">
-                500+
+                0
               </h3>
 
               <p className="text-gray-600">
@@ -90,7 +90,7 @@ function Hero() {
 
             <div>
               <h3 className="text-3xl font-bold text-gray-800">
-                10+
+                
               </h3>
 
               <p className="text-gray-600">
@@ -106,7 +106,7 @@ function Hero() {
 
             <div>
               <h3 className="text-3xl font-bold text-gray-800">
-                50+
+                0
               </h3>
 
               <p className="text-gray-600">
