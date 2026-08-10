@@ -130,7 +130,7 @@ function Dashboard({ setActiveSection }) {
 
         <div className="dashboard-hero-logo">
           <img
-            src="/logo.png"
+            src="/src/assets/logo.png"
             alt="युवा सारथी"
           />
         </div>
