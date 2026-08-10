@@ -166,6 +166,7 @@ const Navbar = () => {
                     हमारी टीम
                   </button>
 
+                  
 
                   <button
                     type="button"
@@ -176,6 +177,19 @@ const Navbar = () => {
                   >
                     सदस्यता
                   </button>
+
+
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openSection("developer")
+                    }
+                    className="w-full text-left px-5 py-3 hover:bg-orange-50 hover:text-orange-600 transition"
+                  >
+                    Developer
+                  </button>
+
 
                 </div>
 
@@ -399,6 +413,20 @@ const Navbar = () => {
                   >
                     हमारी टीम
                   </button>
+
+
+                   <button
+                    type="button"
+                    onClick={() =>
+                      openSection("developer")
+                    }
+                    className="mobile-sub-item"
+                  >
+                    Developer
+                  </button>
+
+
+                   
 
                 </div>
 

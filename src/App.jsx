@@ -8,6 +8,7 @@ import Services from "./components/Services";
 import Gallery from "./components/Gallery";
 import Events from "./components/Events";
 import Team from "./components/Team";
+import Developer from "./components/Developer/Developer";
 import Volunteer from "./components/Volunteer";
 import FAQ from "./components/FAQ";
 import Donate from "./components/Donate";
@@ -30,6 +31,7 @@ const validSections = [
   "gallery",
   "events",
   "team",
+  "developer",
   "volunteer",
   "faq",
   "donate",
@@ -43,15 +45,13 @@ const validSections = [
 
 function App() {
 
-  const [currentSection, setCurrentSection] =
-    useState(
-      window.location.hash.replace("#", "") || "home"
-    );
+  const [currentSection, setCurrentSection] = useState(
+    window.location.hash.replace("#", "") || "home"
+  );
 
-  const [showAdminLogin, setShowAdminLogin] =
-    useState(
-      window.location.hash === "#admin-login"
-    );
+  const [showAdminLogin, setShowAdminLogin] = useState(
+    window.location.hash === "#admin-login"
+  );
 
   const [adminUser, setAdminUser] = useState(null);
 
@@ -64,10 +64,16 @@ function App() {
 
     const handleHashChange = () => {
 
-      const hash =
-        window.location.hash.replace("#", "");
+      const hash = window.location.hash.replace("#", "");
 
+
+      
+
+
+      // ======================================
       // ADMIN LOGIN
+      // ======================================
+
       if (hash === "admin-login") {
 
         setShowAdminLogin(true);
@@ -76,25 +82,42 @@ function App() {
         return;
       }
 
+
+      // ======================================
       // ADMIN PORTAL
+      // ======================================
+
       if (hash === "admin-portal") {
 
         setShowAdminLogin(false);
+
         return;
       }
+
+
+      // ======================================
+      // NORMAL WEBSITE
+      // ======================================
 
       setShowAdminLogin(false);
 
 
+      // ======================================
       // DEFAULT HOME
+      // ======================================
+
       if (!hash) {
 
         setCurrentSection("home");
+
         return;
       }
 
 
+      // ======================================
       // VALID SECTION
+      // ======================================
+
       if (validSections.includes(hash)) {
 
         setCurrentSection(hash);
@@ -114,6 +137,7 @@ function App() {
     );
 
 
+    // Initial check
     handleHashChange();
 
 
@@ -135,7 +159,10 @@ function App() {
 
   function handleAdminLoginSuccess(user) {
 
-    console.log("Admin login successful:", user);
+    console.log(
+      "Admin login successful:",
+      user
+    );
 
     setAdminUser(user);
     setShowAdminLogin(false);
@@ -164,7 +191,9 @@ function App() {
 
     return (
       <AdminLogin
-        onLoginSuccess={handleAdminLoginSuccess}
+        onLoginSuccess={
+          handleAdminLoginSuccess
+        }
       />
     );
 
@@ -269,6 +298,17 @@ function App() {
 
 
       // ======================================
+      // DEVELOPER
+      // ======================================
+
+      case "developer":
+
+        return (
+          <Developer />
+        );
+
+
+      // ======================================
       // VOLUNTEER
       // ======================================
 
@@ -343,15 +383,15 @@ function App() {
       <Navbar />
 
       <main>
-
         {renderSection()}
-
       </main>
 
       <Footer />
 
 
-      {/* ADMIN ACCESS */}
+      {/* ======================================
+          ADMIN ACCESS
+      ====================================== */}
 
       <a
         className="admin-access-button"

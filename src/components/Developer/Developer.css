@@ -1,0 +1,544 @@
+/* =====================================================
+   DEVELOPER SECTION
+===================================================== */
+
+.developer-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+
+  /* FIX: fixed navbar ke neeche section na jaye */
+  scroll-margin-top: 90px;
+
+  padding: 120px 20px 80px;
+
+  box-sizing: border-box;
+
+  background: linear-gradient(
+    to bottom,
+    #ffffff,
+    #f0fdf4
+  );
+
+  overflow-x: hidden;
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.developer-container {
+  width: 100%;
+  max-width: 1280px;
+
+  margin: 0 auto;
+
+  padding: 0;
+
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   HEADING
+===================================================== */
+
+.developer-heading {
+  width: 100%;
+
+  text-align: center;
+
+  margin: 0 auto 56px;
+
+  box-sizing: border-box;
+}
+
+
+.developer-eyebrow {
+  display: inline-block;
+
+  padding: 8px 20px;
+
+  border-radius: 999px;
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+
+.developer-heading h2 {
+  margin: 20px 0 0;
+
+  color: #166534;
+
+  font-size: 42px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.developer-heading p {
+  width: 100%;
+
+  max-width: 650px;
+
+  margin: 18px auto 0;
+
+  color: #6b7280;
+
+  font-size: 16px;
+
+  line-height: 1.8;
+
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.developer-card {
+  position: relative;
+
+  width: 100%;
+
+  max-width: 390px;
+
+  margin: 0 auto;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border-radius: 28px;
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.10);
+
+  box-sizing: border-box;
+
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+
+.developer-card:hover {
+  transform: translateY(-8px);
+
+  box-shadow:
+    0 25px 55px rgba(0, 0, 0, 0.16);
+}
+
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.developer-image-wrapper {
+  position: relative;
+
+  width: 100%;
+
+  height: 380px;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+
+.developer-image {
+  display: block;
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  object-position: center;
+
+  transition:
+    transform 0.7s ease;
+}
+
+
+.developer-card:hover .developer-image {
+  transform: scale(1.06);
+}
+
+
+/* =====================================================
+   IMAGE OVERLAY
+===================================================== */
+
+.developer-image-wrapper::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.06);
+
+  pointer-events: none;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.developer-content {
+  width: 100%;
+
+  padding: 26px 24px 30px;
+
+  text-align: center;
+
+  box-sizing: border-box;
+}
+
+
+.developer-content h3 {
+  margin: 0;
+
+  color: #166534;
+
+  font-size: 28px;
+
+  font-weight: 800;
+
+  line-height: 1.3;
+}
+
+
+/* =====================================================
+   ROLE
+===================================================== */
+
+.developer-role {
+  display: inline-block;
+
+  margin-top: 12px;
+
+  padding: 8px 20px;
+
+  border-radius: 999px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      to right,
+    
+      #ff9602,
+       #236208
+    );
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+
+/* =====================================================
+   DESCRIPTION
+===================================================== */
+
+.developer-content p {
+  margin: 18px auto 0;
+
+  max-width: 320px;
+
+  color: #6b7280;
+
+  font-size: 15px;
+
+  line-height: 1.7;
+}
+
+
+/* =====================================================
+   SOCIAL LINKS
+===================================================== */
+
+.developer-socials {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 16px;
+
+  margin-top: 22px;
+}
+
+
+.developer-social {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 44px;
+
+  height: 44px;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  font-size: 20px;
+
+  text-decoration: none;
+
+  box-sizing: border-box;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+.developer-social:hover {
+  transform: scale(1.12);
+
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+.developer-social.whatsapp {
+  background: #22c55e;
+}
+
+
+.developer-social.whatsapp:hover {
+  background: #16a34a;
+}
+
+
+/* =====================================================
+   INSTAGRAM
+===================================================== */
+
+.developer-social.instagram {
+  background: #ec4899;
+}
+
+
+.developer-social.instagram:hover {
+  background: #db2777;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1024px) {
+
+  .developer-section {
+    scroll-margin-top: 85px;
+
+    padding: 110px 20px 70px;
+  }
+
+  .developer-heading {
+    margin-bottom: 48px;
+  }
+
+  .developer-heading h2 {
+    font-size: 38px;
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 640px) {
+
+  .developer-section {
+    width: 100%;
+
+    min-height: 100vh;
+
+    scroll-margin-top: 85px;
+
+    padding: 105px 16px 60px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+  }
+
+
+  .developer-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    margin: 0 auto;
+
+    box-sizing: border-box;
+  }
+
+
+  .developer-heading {
+    width: 100%;
+
+    margin-bottom: 40px;
+  }
+
+
+  .developer-eyebrow {
+    padding: 7px 16px;
+
+    font-size: 12px;
+  }
+
+
+  .developer-heading h2 {
+    margin-top: 16px;
+
+    font-size: 34px;
+
+    line-height: 1.25;
+  }
+
+
+  .developer-heading p {
+    max-width: 100%;
+
+    margin-top: 16px;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+  }
+
+
+  .developer-card {
+    width: 100%;
+
+    max-width: 350px;
+
+    margin-left: auto;
+
+    margin-right: auto;
+
+    border-radius: 24px;
+  }
+
+
+  .developer-image-wrapper {
+    width: 100%;
+
+    height: 340px;
+  }
+
+
+  .developer-content {
+    padding: 24px 20px 28px;
+  }
+
+
+  .developer-content h3 {
+    font-size: 25px;
+  }
+
+
+  .developer-role {
+    margin-top: 10px;
+
+    padding: 7px 17px;
+
+    font-size: 13px;
+  }
+
+
+  .developer-content p {
+    max-width: 290px;
+
+    margin-top: 16px;
+
+    font-size: 14px;
+  }
+
+
+  .developer-socials {
+    margin-top: 20px;
+
+    gap: 14px;
+  }
+
+
+  .developer-social {
+    width: 42px;
+
+    height: 42px;
+
+    font-size: 19px;
+  }
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 380px) {
+
+  .developer-section {
+    padding-left: 12px;
+
+    padding-right: 12px;
+
+    padding-top: 100px;
+  }
+
+
+  .developer-heading h2 {
+    font-size: 30px;
+  }
+
+
+  .developer-heading p {
+    font-size: 14px;
+  }
+
+
+  .developer-card {
+    max-width: 100%;
+
+    border-radius: 22px;
+  }
+
+
+  .developer-image-wrapper {
+    height: 310px;
+  }
+}

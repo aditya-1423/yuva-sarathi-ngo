@@ -37,24 +37,42 @@ const Footer = () => {
       name: "होम",
       href: "#home",
     },
+
     {
-     name: "हमारी गैलरी",
-     href: "#gallery",
-   },
-  
+      name: "हमारी गैलरी",
+      href: "#gallery",
+    },
+
     {
       name: "हमारे बारे में",
       href: "#about",
     },
+
     {
       name: "हमारे कार्यक्रम",
       href: "#events",
     },
-   
+
+    // {
+    //   name: "हमारी टीम",
+    //   href: "#team",
+    // },
+
+    // {
+    //   name: "Developer",
+    //   href: "#developer",
+    // },
+
     {
       name: "संपर्क करें",
       href: "#contact",
     },
+
+     {
+      name: "Developer",
+      href: "#developer",
+    },
+
   ];
 
   const importantLinks = [
@@ -62,32 +80,29 @@ const Footer = () => {
       name: "हमारे सदस्य बनें",
       href: "#volunteer",
     },
+
     {
       name: "सहयोग करें",
       href: "#donate",
     },
+
     {
       name: "हमारा मिशन",
       href: "#mission",
     },
+
     {
       name: "हमारी सेवाएं",
       href: "#services",
     },
+
     {
       name: "सामान्य प्रश्न",
       href: "#faq",
     },
-     
-    // {
-    //   name: "कार्यक्रम",
-    //   href: "#events",
-    // },
-    // {
-    //   name: "हमारी गतिविधियां",
-    //   href: "#gallery",
-    // },
   ];
+
+  
 
   return (
     <footer className="bg-gray-950 text-white">
@@ -95,6 +110,7 @@ const Footer = () => {
       {/* =========================
           MAIN FOOTER
       ========================== */}
+
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-14">
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -102,31 +118,40 @@ const Footer = () => {
           {/* =========================
               ABOUT NGO
           ========================== */}
+
           <div>
 
             <h2 className="text-2xl font-bold mb-4">
+
               युवा{" "}
+
               <span className="text-orange-500">
                 सारथी
               </span>
+
             </h2>
 
             <p className="text-gray-400 leading-7">
+
               युवा सारथी सेवा संस्था छत्तीसगढ़ समाज के विकास,
               शिक्षा, स्वास्थ्य, स्वच्छता, पर्यावरण संरक्षण और
               समानता के लिए निरंतर कार्य कर रही है।
+
             </p>
 
             <p className="mt-5 text-orange-400 font-semibold">
+
               #स्वार्थी नहीं सारथी बनो#
+
             </p>
 
-            {/* =========================
-                SOCIAL LINKS
-            ========================== */}
+
+            {/* SOCIAL LINKS */}
+
             <div className="flex gap-3 mt-6">
 
               {socialLinks.map((social) => (
+
                 <a
                   key={social.name}
                   href={social.url}
@@ -146,17 +171,22 @@ const Footer = () => {
                     font-bold
                   "
                 >
+
                   {social.icon}
+
                 </a>
+
               ))}
 
             </div>
 
           </div>
 
+
           {/* =========================
               QUICK LINKS
           ========================== */}
+
           <div>
 
             <h3 className="text-lg font-bold mb-5">
@@ -166,6 +196,7 @@ const Footer = () => {
             <ul className="space-y-3">
 
               {quickLinks.map((link) => (
+
                 <li key={link.name}>
 
                   <a
@@ -176,19 +207,24 @@ const Footer = () => {
                       transition
                     "
                   >
+
                     {link.name}
+
                   </a>
 
                 </li>
+
               ))}
 
             </ul>
 
           </div>
 
+
           {/* =========================
               IMPORTANT LINKS
           ========================== */}
+
           <div>
 
             <h3 className="text-lg font-bold mb-5">
@@ -198,6 +234,7 @@ const Footer = () => {
             <ul className="space-y-3">
 
               {importantLinks.map((link) => (
+
                 <li key={link.name}>
 
                   <a
@@ -208,19 +245,24 @@ const Footer = () => {
                       transition
                     "
                   >
+
                     {link.name}
+
                   </a>
 
                 </li>
+
               ))}
 
             </ul>
 
           </div>
 
+
           {/* =========================
               CONTACT
           ========================== */}
+
           <div>
 
             <h3 className="text-lg font-bold mb-5">
@@ -230,6 +272,7 @@ const Footer = () => {
             <div className="space-y-5">
 
               {/* Address */}
+
               <div className="flex items-start gap-3">
 
                 <MapPin
@@ -247,7 +290,9 @@ const Footer = () => {
 
               </div>
 
+
               {/* Phone */}
+
               <div className="flex items-center gap-3">
 
                 <Phone
@@ -259,7 +304,7 @@ const Footer = () => {
                 />
 
                 <a
-                  href="tel:+919999999999"
+                  href="tel:+919238022531"
                   className="
                     text-gray-400
                     hover:text-orange-400
@@ -271,7 +316,9 @@ const Footer = () => {
 
               </div>
 
+
               {/* Email */}
+
               <div className="flex items-center gap-3">
 
                 <Mail
@@ -298,7 +345,9 @@ const Footer = () => {
 
             </div>
 
+
             {/* Donate Button */}
+
             <a
               href="#donate"
               className="
@@ -326,9 +375,11 @@ const Footer = () => {
 
       </div>
 
+
       {/* =========================
           BOTTOM BAR
       ========================== */}
+
       <div className="border-t border-gray-800">
 
         <div
@@ -354,6 +405,7 @@ const Footer = () => {
           >
 
             {/* Copyright */}
+
             <p
               className="
                 text-sm
@@ -362,11 +414,15 @@ const Footer = () => {
                 md:text-left
               "
             >
+
               © {new Date().getFullYear()} युवा सारथी सेवा संस्था
               छत्तीसगढ़। सभी अधिकार सुरक्षित।
+
             </p>
 
+
             {/* Made With */}
+
             <p
               className="
                 text-sm
@@ -376,6 +432,7 @@ const Footer = () => {
                 gap-1
               "
             >
+
               Made with
 
               <Heart
@@ -387,9 +444,12 @@ const Footer = () => {
               />
 
               for society
+
             </p>
 
+
             {/* Back To Top */}
+
             <button
               onClick={scrollToTop}
               aria-label="Back to top"
@@ -407,7 +467,9 @@ const Footer = () => {
                 hover:-translate-y-1
               "
             >
+
               <ArrowUp size={18} />
+
             </button>
 
           </div>

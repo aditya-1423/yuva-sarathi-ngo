@@ -5,182 +5,157 @@ import {
 } from "react-icons/fa";
 
 function Team() {
-
   const members = [
-
     {
-      id:1,
-      name:"नोकेश कुमार मधुकर",
-      role:"संस्थापक",
-      image:"/team/founder.jpg",
-      color:"from-green-700 to-green-900"
+      id: 1,
+      name: "नोकेश कुमार मधुकर",
+      role: "संस्थापक",
+      image: "/src/assets/nokesh.jpeg",
+      color: "from-green-700 to-green-900",
     },
 
     {
-      id:2,
-      name:"गजेंद्र सिंह ठाकुर",
-      role:"सह-संस्थापक",
-      image:"/team/cofounder.jpg",
-      color:"from-orange-500 to-orange-600"
+      id: 2,
+      name: "गजेंद्र सिंह ठाकुर",
+      role: "सह-संस्थापक",
+      image: "/src/assets/logo.png",
+      color: "from-orange-500 to-orange-600",
     },
 
     {
-      id:3,
-      name:"टीम सदस्य",
-      role:"मुख्य स्वयंसेवक",
-      image:"/team/member1.jpg",
-      color:"from-blue-600 to-blue-800"
+      id: 3,
+      name: "टीम सदस्य",
+      role: "मुख्य स्वयंसेवक",
+      image: "/src/assets/logo.png",
+      color: "from-blue-600 to-blue-800",
     },
 
     {
-      id:4,
-      name:"टीम सदस्य",
-      role:"स्वयंसेवक",
-      image:"/team/member2.jpg",
-      color:"from-pink-500 to-pink-700"
+      id: 4,
+      name: "टीम सदस्य",
+      role: "स्वयंसेवक",
+      image: "/src/assets/logo.png",
+      color: "from-pink-500 to-pink-700",
     },
 
     {
-      id:5,
-      name:"टीम सदस्य",
-      role:"स्वयंसेवक",
-      image:"/team/member3.jpg",
-      color:"from-purple-500 to-purple-700"
+      id: 5,
+      name: "टीम सदस्य",
+      role: "स्वयंसेवक",
+      image: "/src/assets/logo.png",
+      color: "from-purple-500 to-purple-700",
     },
 
     {
-      id:6,
-      name:"टीम सदस्य",
-      role:"स्वयंसेवक",
-      image:"/team/member4.jpg",
-      color:"from-teal-500 to-teal-700"
-    }
-
+      id: 6,
+      name: "टीम सदस्य",
+      role: "स्वयंसेवक",
+      image: "/src/assets/logo.png",
+      color: "from-teal-500 to-teal-700",
+    },
   ];
 
-  return(
+  return (
+    <section
+      id="team"
+      className="py-24 bg-gradient-to-b from-white to-green-50"
+    >
+      <div className="max-w-7xl mx-auto px-5">
 
-<section
-id="team"
-className="py-24 bg-gradient-to-b from-white to-green-50"
->
+        {/* HEADER */}
+        <div className="text-center mb-16">
 
-<div className="max-w-7xl mx-auto px-5">
+          <span className="bg-green-100 text-green-700 px-5 py-2 rounded-full font-semibold">
+            हमारी नेतृत्व टीम
+          </span>
 
-<div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-5">
+            हमारी टीम
+          </h2>
 
-<span className="bg-green-100 text-green-700 px-5 py-2 rounded-full font-semibold">
+          <p className="text-gray-600 mt-5 max-w-2xl mx-auto leading-8">
+            युवा सारथी सेवा संस्था को आगे बढ़ाने वाले समर्पित संस्थापक,
+            सह-संस्थापक एवं स्वयंसेवकों की टीम।
+          </p>
 
-हमारी नेतृत्व टीम
+        </div>
 
-</span>
+        {/* TEAM GRID */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-<h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-5">
+          {members.map((member) => (
 
-हमारी टीम
+            <div
+              key={member.id}
+              className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:-translate-y-3 hover:shadow-2xl transition duration-500"
+            >
 
-</h2>
+              {/* IMAGE */}
+              <div className="relative overflow-hidden">
 
-<p className="text-gray-600 mt-5 max-w-2xl mx-auto leading-8">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-80 object-cover group-hover:scale-110 transition duration-700"
+                />
 
-युवा सारथी सेवा संस्था को आगे बढ़ाने वाले समर्पित संस्थापक,
-सह-संस्थापक एवं स्वयंसेवकों की टीम।
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition"></div>
 
-</p>
+              </div>
 
-</div>
+              {/* CONTENT */}
+              <div className="p-6 text-center">
 
-<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <h3 className="text-2xl font-bold text-green-800">
+                  {member.name}
+                </h3>
 
-{
+                <div
+                  className={`inline-block mt-3 px-5 py-2 rounded-full text-white bg-gradient-to-r ${member.color}`}
+                >
+                  {member.role}
+                </div>
 
-members.map((member)=>(
+                {/* SOCIAL */}
+                <div className="flex justify-center gap-4 mt-6">
 
-<div
+                  <a
+                    href="#"
+                    className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition"
+                    aria-label={`${member.name} Facebook`}
+                  >
+                    <FaFacebookF />
+                  </a>
 
-key={member.id}
+                  <a
+                    href="#"
+                    className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center hover:scale-110 transition"
+                    aria-label={`${member.name} Instagram`}
+                  >
+                    <FaInstagram />
+                  </a>
 
-className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:-translate-y-3 hover:shadow-2xl transition duration-500"
+                  <a
+                    href="#"
+                    className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center hover:scale-110 transition"
+                    aria-label={`${member.name} LinkedIn`}
+                  >
+                    <FaLinkedinIn />
+                  </a>
 
->
+                </div>
 
-<div className="relative overflow-hidden">
+              </div>
 
-<img
+            </div>
 
-src={member.image}
+          ))}
 
-alt={member.name}
+        </div>
 
-className="w-full h-80 object-cover group-hover:scale-110 transition duration-700"
-
-/>
-
-<div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition"></div>
-
-</div>
-
-<div className="p-6 text-center">
-
-<h3 className="text-2xl font-bold text-green-800">
-
-{member.name}
-
-</h3>
-
-<div className={`inline-block mt-3 px-5 py-2 rounded-full text-white bg-gradient-to-r ${member.color}`}>
-
-{member.role}
-
-</div>
-
-<div className="flex justify-center gap-4 mt-6">
-
-<a
-href="#"
-className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:scale-110 transition"
->
-
-<FaFacebookF/>
-
-</a>
-
-<a
-href="#"
-className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center hover:scale-110 transition"
->
-
-<FaInstagram/>
-
-</a>
-
-<a
-href="#"
-className="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center hover:scale-110 transition"
->
-
-<FaLinkedinIn/>
-
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-))
-
-}
-
-</div>
-
-</div>
-
-</section>
-
-)
-
+      </div>
+    </section>
+  );
 }
 
 export default Team;
