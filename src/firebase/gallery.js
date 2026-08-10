@@ -1,565 +1,230 @@
+// src/firebase/gallery.js
+
 import {
   collection,
-  getDocs,
   addDoc,
+  getDocs,
   deleteDoc,
   doc,
   serverTimestamp,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
+import { db } from "./firebase.js";
 
 import {
-  db,
-  storage,
-} from "./firebase.js";
-
-
-// =====================================================
-// SETTINGS
-// =====================================================
+  CLOUDINARY_UPLOAD_URL,
+  CLOUDINARY_UPLOAD_PRESET,
+} from "../config/cloudinary.js";
 
 const GALLERY_COLLECTION = "gallery";
 
-const MAX_WIDTH = 1920;
-const MAX_HEIGHT = 1920;
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-// JPEG quality
-const IMAGE_QUALITY = 0.78;
+/* =========================================================
+   CLOUDINARY UPLOAD
+========================================================= */
 
-
-// =====================================================
-// COMPRESS IMAGE
-// =====================================================
-
-async function compressImage(file) {
-  if (!file || !file.type.startsWith("image/")) {
-    throw new Error("Valid image file नहीं है।");
+async function uploadToCloudinary(file) {
+  if (!file) {
+    throw new Error("Image file missing.");
   }
 
-  return new Promise((resolve, reject) => {
-    const image = new Image();
+  if (!file.type?.startsWith("image/")) {
+    throw new Error(
+      `${file.name} एक valid image नहीं है।`
+    );
+  }
 
-    const objectUrl = URL.createObjectURL(file);
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `${file.name} 15 MB से बड़ी है।`
+    );
+  }
 
-    image.onload = () => {
-      try {
-        let width = image.naturalWidth;
-        let height = image.naturalHeight;
+  const formData = new FormData();
 
-        // ---------------------------------------------
-        // Resize if image is too large
-        // ---------------------------------------------
+  formData.append("file", file);
+  formData.append(
+    "upload_preset",
+    CLOUDINARY_UPLOAD_PRESET
+  );
 
-        const widthRatio = MAX_WIDTH / width;
-        const heightRatio = MAX_HEIGHT / height;
+  const response = await fetch(
+    CLOUDINARY_UPLOAD_URL,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 
-        const ratio = Math.min(
-          1,
-          widthRatio,
-          heightRatio
-        );
+  const result = await response.json();
 
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
+  if (!response.ok) {
+    throw new Error(
+      result?.error?.message ||
+        "Cloudinary upload failed."
+    );
+  }
 
-        // ---------------------------------------------
-        // Canvas
-        // ---------------------------------------------
+  if (!result.secure_url) {
+    throw new Error(
+      "Cloudinary image URL नहीं मिला।"
+    );
+  }
 
-        const canvas = document.createElement("canvas");
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-          URL.revokeObjectURL(objectUrl);
-
-          reject(
-            new Error(
-              "Image compression शुरू नहीं हो सकी।"
-            )
-          );
-
-          return;
-        }
-
-        // White background
-        // Useful for PNG images with transparency
-        context.fillStyle = "#ffffff";
-
-        context.fillRect(
-          0,
-          0,
-          width,
-          height
-        );
-
-        context.drawImage(
-          image,
-          0,
-          0,
-          width,
-          height
-        );
-
-        // ---------------------------------------------
-        // Convert to JPEG
-        // ---------------------------------------------
-
-        canvas.toBlob(
-          (blob) => {
-            URL.revokeObjectURL(objectUrl);
-
-            if (!blob) {
-              reject(
-                new Error(
-                  "Image compression failed."
-                )
-              );
-
-              return;
-            }
-
-            const originalName =
-              file.name
-                .replace(/\.[^/.]+$/, "")
-                .replace(/[^a-zA-Z0-9-_]/g, "_");
-
-            const compressedFile =
-              new File(
-                [
-                  blob,
-                ],
-                `${originalName}.jpg`,
-                {
-                  type: "image/jpeg",
-                  lastModified:
-                    Date.now(),
-                }
-              );
-
-            resolve(
-              compressedFile
-            );
-          },
-          "image/jpeg",
-          IMAGE_QUALITY
-        );
-      } catch (error) {
-        URL.revokeObjectURL(objectUrl);
-
-        reject(error);
-      }
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-
-      reject(
-        new Error(
-          `Image "${file.name}" पढ़ी नहीं जा सकी।`
-        )
-      );
-    };
-
-    image.src = objectUrl;
-  });
+  return {
+    url: result.secure_url,
+    publicId: result.public_id || null,
+    resourceType:
+      result.resource_type || "image",
+    width: result.width || null,
+    height: result.height || null,
+    format: result.format || null,
+  };
 }
 
-
-// =====================================================
-// ADD GALLERY IMAGES
-// =====================================================
+/* =========================================================
+   ADD GALLERY IMAGES
+========================================================= */
 
 export async function addGalleryImages(
   files,
   caption = ""
 ) {
-  if (!files || files.length === 0) {
+  if (!Array.isArray(files) || files.length === 0) {
     throw new Error(
       "कम से कम एक तस्वीर चुनें।"
     );
   }
 
+  const galleryRef = collection(
+    db,
+    GALLERY_COLLECTION
+  );
+
   const uploadedImages = [];
 
-  try {
-    // -----------------------------------------------
-    // Upload each image
-    // -----------------------------------------------
+  for (const file of files) {
+    const cloudinaryImage =
+      await uploadToCloudinary(file);
 
-    for (
-      let index = 0;
-      index < files.length;
-      index += 1
-    ) {
-      const originalFile = files[index];
+    const documentData = {
+      imageUrl: cloudinaryImage.url,
 
-      if (
-        !originalFile ||
-        !originalFile.type.startsWith("image/")
-      ) {
-        throw new Error(
-          `${originalFile?.name || "File"} image नहीं है।`
-        );
-      }
+      cloudinaryPublicId:
+        cloudinaryImage.publicId,
 
-      // =============================================
-      // COMPRESS BEFORE UPLOAD
-      // =============================================
+      resourceType:
+        cloudinaryImage.resourceType,
 
-      const compressedFile =
-        await compressImage(
-          originalFile
-        );
+      width: cloudinaryImage.width,
+      height: cloudinaryImage.height,
+      format: cloudinaryImage.format,
 
-      // =============================================
-      // UNIQUE FILE NAME
-      // =============================================
+      caption:
+        caption?.trim() ||
+        "संस्था की गतिविधि",
 
-      const timestamp =
-        Date.now();
+      createdAt: serverTimestamp(),
+    };
 
-      const random =
-        Math.random()
-          .toString(36)
-          .substring(2, 10);
-
-      const fileName =
-        `gallery_${timestamp}_${random}_${index}.jpg`;
-
-      // =============================================
-      // STORAGE PATH
-      // =============================================
-
-      const storagePath =
-        `gallery/${fileName}`;
-
-      const storageRef =
-        ref(
-          storage,
-          storagePath
-        );
-
-      // =============================================
-      // UPLOAD COMPRESSED IMAGE
-      // =============================================
-
-      await uploadBytes(
-        storageRef,
-        compressedFile,
-        {
-          contentType:
-            "image/jpeg",
-
-          cacheControl:
-            "public,max-age=31536000,immutable",
-        }
+    const documentReference =
+      await addDoc(
+        galleryRef,
+        documentData
       );
 
-      // =============================================
-      // GET URL
-      // =============================================
-
-      const imageUrl =
-        await getDownloadURL(
-          storageRef
-        );
-
-      // =============================================
-      // FIRESTORE DOCUMENT
-      // =============================================
-
-      const documentData = {
-        imageUrl,
-        image: imageUrl,
-        photo: imageUrl,
-
-        caption:
-          caption.trim() ||
-          "संस्था की गतिविधि",
-
-        title:
-          caption.trim() ||
-          "संस्था की गतिविधि",
-
-        storagePath,
-
-        originalName:
-          originalFile.name,
-
-        originalSize:
-          originalFile.size,
-
-        compressedSize:
-          compressedFile.size,
-
-        createdAt:
-          serverTimestamp(),
-      };
-
-      const documentReference =
-        await addDoc(
-          collection(
-            db,
-            GALLERY_COLLECTION
-          ),
-          documentData
-        );
-
-      uploadedImages.push({
-        id:
-          documentReference.id,
-
-        ...documentData,
-      });
-    }
-
-    return uploadedImages;
-
-  } catch (error) {
-    console.error(
-      "Gallery upload error:",
-      error
-    );
-
-    throw error;
+    uploadedImages.push({
+      id: documentReference.id,
+      ...documentData,
+    });
   }
+
+  return uploadedImages;
 }
 
-
-// =====================================================
-// GET GALLERY IMAGES
-// =====================================================
+/* =========================================================
+   GET GALLERY IMAGES
+========================================================= */
 
 export async function getGalleryImages() {
+  const galleryRef = collection(
+    db,
+    GALLERY_COLLECTION
+  );
+
+  let snapshot;
+
   try {
-    const galleryRef =
-      collection(
-        db,
-        GALLERY_COLLECTION
-      );
-
-    const snapshot =
-      await getDocs(
-        galleryRef
-      );
-
-    const images =
-      snapshot.docs
-        .map((document) => {
-          const data =
-            document.data();
-
-          return {
-            id:
-              document.id,
-
-            imageUrl:
-              data.imageUrl ||
-              data.image ||
-              data.photo ||
-              "",
-
-            image:
-              data.imageUrl ||
-              data.image ||
-              data.photo ||
-              "",
-
-            caption:
-              data.caption ||
-              data.title ||
-              "संस्था की गतिविधि",
-
-            title:
-              data.title ||
-              data.caption ||
-              "संस्था की गतिविधि",
-
-            storagePath:
-              data.storagePath ||
-              "",
-
-            originalName:
-              data.originalName ||
-              "",
-
-            originalSize:
-              data.originalSize ||
-              0,
-
-            compressedSize:
-              data.compressedSize ||
-              0,
-
-            createdAt:
-              data.createdAt ||
-              null,
-          };
-        })
-        .filter(
-          (item) =>
-            item.imageUrl
-        );
-
-    // =============================================
-    // NEWEST FIRST
-    // =============================================
-
-    images.sort(
-      (a, b) => {
-        const getTime =
-          (value) => {
-            if (!value) {
-              return 0;
-            }
-
-            if (
-              typeof value.toMillis ===
-              "function"
-            ) {
-              return value.toMillis();
-            }
-
-            if (
-              value instanceof Date
-            ) {
-              return value.getTime();
-            }
-
-            const time =
-              new Date(
-                value
-              ).getTime();
-
-            return Number.isNaN(
-              time
-            )
-              ? 0
-              : time;
-          };
-
-        return (
-          getTime(
-            b.createdAt
-          ) -
-          getTime(
-            a.createdAt
-          )
-        );
-      }
+    const galleryQuery = query(
+      galleryRef,
+      orderBy("createdAt", "desc")
     );
 
-    return images;
-
+    snapshot = await getDocs(
+      galleryQuery
+    );
   } catch (error) {
-    console.error(
-      "Get gallery images error:",
+    console.warn(
+      "Ordered gallery query failed. Loading without order:",
       error
     );
 
-    throw error;
+    snapshot = await getDocs(
+      galleryRef
+    );
   }
+
+  return snapshot.docs
+    .map((document) => ({
+      id: document.id,
+      ...document.data(),
+    }))
+    .filter(
+      (item) =>
+        item.imageUrl ||
+        item.image ||
+        item.photo
+    )
+    .map((item) => ({
+      ...item,
+
+      imageUrl:
+        item.imageUrl ||
+        item.image ||
+        item.photo ||
+        "",
+    }));
 }
 
+/* =========================================================
+   DELETE GALLERY IMAGE
+=========================================================
 
-// =====================================================
-// DELETE GALLERY IMAGE
-// =====================================================
+   IMPORTANT:
+   This deletes ONLY the Firestore document.
+
+   Cloudinary image is intentionally NOT deleted.
+========================================================= */
 
 export async function deleteGalleryImage(
   imageId
 ) {
   if (!imageId) {
     throw new Error(
-      "Image ID नहीं मिला।"
+      "Gallery image ID missing."
     );
   }
 
-  try {
-    // =============================================
-    // GET DOCUMENT
-    // =============================================
+  await deleteDoc(
+    doc(
+      db,
+      GALLERY_COLLECTION,
+      imageId
+    )
+  );
 
-    const imageReference =
-      doc(
-        db,
-        GALLERY_COLLECTION,
-        imageId
-      );
-
-    const snapshot =
-      await getDocs(
-        collection(
-          db,
-          GALLERY_COLLECTION
-        )
-      );
-
-    const matchingDocument =
-      snapshot.docs.find(
-        (item) =>
-          item.id === imageId
-      );
-
-    // =============================================
-    // DELETE STORAGE FILE
-    // =============================================
-
-    if (
-      matchingDocument
-    ) {
-      const data =
-        matchingDocument.data();
-
-      if (
-        data.storagePath
-      ) {
-        try {
-          const storageReference =
-            ref(
-              storage,
-              data.storagePath
-            );
-
-          await deleteObject(
-            storageReference
-          );
-
-        } catch (storageError) {
-          console.warn(
-            "Storage delete warning:",
-            storageError
-          );
-        }
-      }
-    }
-
-    // =============================================
-    // DELETE FIRESTORE DOCUMENT
-    // =============================================
-
-    await deleteDoc(
-      imageReference
-    );
-
-    return true;
-
-  } catch (error) {
-    console.error(
-      "Delete gallery image error:",
-      error
-    );
-
-    throw error;
-  }
+  return true;
 }

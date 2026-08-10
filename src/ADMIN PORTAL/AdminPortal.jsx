@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import Management from "./components/Management.jsx";
+
 import AdminNavbar from "./components/AdminNavbar.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Membership from "./components/Membership.jsx";
@@ -78,6 +80,10 @@ function AdminPortal({ user, onLogout }) {
             setActiveSection={setActiveSection}
           />
         )}
+
+        {activeSection === "management" && (
+  <Management />
+)}
 
 
         {/* ====================================

@@ -1,388 +1,282 @@
+// src/firebase/events.js
+
 import {
-  addDoc,
   collection,
+  addDoc,
+  getDocs,
   deleteDoc,
   doc,
-  getDocs,
   serverTimestamp,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
 import { db } from "./firebase.js";
 
-const CLOUD_NAME =
-  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+import {
+  CLOUDINARY_UPLOAD_URL,
+  CLOUDINARY_UPLOAD_PRESET,
+} from "../config/cloudinary.js";
 
-const UPLOAD_PRESET =
-  import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const EVENTS_COLLECTION = "events";
 
+const MAX_EVENT_IMAGES = 5;
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-// =====================================
-// CONSTANTS
-// =====================================
+/* =========================================================
+   CLOUDINARY UPLOAD
+========================================================= */
 
-const MAX_IMAGE_SIZE =
-  15 * 1024 * 1024; // 15 MB per image
-
-const MAX_GALLERY_IMAGES = 5;
-
-
-// =====================================
-// CLOUDINARY IMAGE UPLOAD
-// =====================================
-
-async function uploadImageToCloudinary(
-  file,
-  folder
-) {
-
+async function uploadToCloudinary(file) {
   if (!file) {
+    throw new Error("Image file missing.");
+  }
+
+  if (!file.type?.startsWith("image/")) {
     throw new Error(
-      "Image file नहीं मिली।"
+      `${file.name} एक valid image नहीं है।`
     );
   }
 
-
-  // IMAGE TYPE CHECK
-
-  if (
-    !file.type ||
-    !file.type.startsWith("image/")
-  ) {
-
-    throw new Error(
-      `${file.name} image नहीं है।`
-    );
-
-  }
-
-
-  // INDIVIDUAL IMAGE SIZE
-
-  if (
-    file.size >
-    MAX_IMAGE_SIZE
-  ) {
-
+  if (file.size > MAX_FILE_SIZE) {
     throw new Error(
       `${file.name} 15 MB से बड़ी है।`
     );
-
   }
 
+  const formData = new FormData();
 
-  const formData =
-    new FormData();
-
-
-  formData.append(
-    "file",
-    file
-  );
-
-
+  formData.append("file", file);
   formData.append(
     "upload_preset",
-    UPLOAD_PRESET
+    CLOUDINARY_UPLOAD_PRESET
   );
 
-
-  formData.append(
-    "folder",
-    folder
+  const response = await fetch(
+    CLOUDINARY_UPLOAD_URL,
+    {
+      method: "POST",
+      body: formData,
+    }
   );
 
-
-  const response =
-    await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-
-  const uploadedImage =
-    await response.json();
-
+  const result = await response.json();
 
   if (!response.ok) {
-
     throw new Error(
-      uploadedImage.error?.message ||
-        `${file.name} upload नहीं हुई।`
+      result?.error?.message ||
+        "Cloudinary upload failed."
     );
-
   }
 
-
-  if (
-    !uploadedImage.secure_url
-  ) {
-
+  if (!result.secure_url) {
     throw new Error(
-      `${file.name} का Cloudinary URL नहीं मिला।`
+      "Cloudinary image URL नहीं मिला।"
     );
-
   }
 
+  return {
+    url: result.secure_url,
 
-  return uploadedImage.secure_url;
+    publicId:
+      result.public_id || null,
+
+    resourceType:
+      result.resource_type || "image",
+
+    width:
+      result.width || null,
+
+    height:
+      result.height || null,
+
+    format:
+      result.format || null,
+  };
 }
 
-
-// =====================================
-// CREATE EVENT
-// =====================================
+/* =========================================================
+   CREATE EVENT
+========================================================= */
 
 export async function createEvent({
-
   title,
-
   date,
-
   location,
-
   description,
-
-  imageFile,
-
-  // Multiple gallery images
-  imageFiles,
-
-  // Alternative name support
-  galleryImages,
-
+  imageFiles = [],
 }) {
+  if (!title?.trim()) {
+    throw new Error(
+      "कार्यक्रम का नाम आवश्यक है।"
+    );
+  }
 
-  // =====================================
-  // BASIC VALIDATION
-  // =====================================
+  if (!date) {
+    throw new Error(
+      "कार्यक्रम की तारीख आवश्यक है।"
+    );
+  }
+
+  if (!location?.trim()) {
+    throw new Error(
+      "कार्यक्रम का स्थान आवश्यक है।"
+    );
+  }
+
+  if (!description?.trim()) {
+    throw new Error(
+      "कार्यक्रम का विवरण आवश्यक है।"
+    );
+  }
 
   if (
-    !title ||
-    !date ||
-    !location ||
-    !description
+    !Array.isArray(imageFiles) ||
+    imageFiles.length === 0
   ) {
-
     throw new Error(
-      "सभी जानकारी भरना जरूरी है।"
+      "कम से कम एक तस्वीर चुनें।"
     );
-
   }
-
-
-  // =====================================
-  // COVER IMAGE
-  // =====================================
-
-  let imageUrl = "";
-
-
-  if (imageFile) {
-
-    imageUrl =
-      await uploadImageToCloudinary(
-        imageFile,
-        "yuva-sarathi-events"
-      );
-
-  }
-
-
-  // =====================================
-  // GALLERY IMAGES
-  // =====================================
-
-  let filesToUpload = [];
-
-
-  // imageFiles आने पर
-
-  if (imageFiles) {
-
-    filesToUpload =
-      Array.from(
-        imageFiles
-      );
-
-  }
-
-  // galleryImages आने पर
-
-  else if (galleryImages) {
-
-    filesToUpload =
-      Array.from(
-        galleryImages
-      );
-
-  }
-
-
-  // =====================================
-  // MAX 5 IMAGES
-  // =====================================
 
   if (
-    filesToUpload.length >
-    MAX_GALLERY_IMAGES
+    imageFiles.length >
+    MAX_EVENT_IMAGES
   ) {
-
     throw new Error(
-      "एक कार्य के साथ अधिकतम 5 तस्वीरें ही जोड़ सकते हैं।"
+      "एक कार्यक्रम में अधिकतम 5 तस्वीरें चुन सकते हैं।"
     );
-
   }
 
+  /* =======================================================
+     UPLOAD ALL EVENT IMAGES TO CLOUDINARY
+  ======================================================= */
 
-  // =====================================
-  // CHECK ALL FILES BEFORE UPLOAD
-  // =====================================
+  const galleryImages = [];
 
-  for (
-    const file of filesToUpload
-  ) {
+  for (const file of imageFiles) {
+    const uploaded =
+      await uploadToCloudinary(file);
 
-    if (
-      !file.type ||
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
+    galleryImages.push({
+      url: uploaded.url,
 
-      throw new Error(
-        `${file.name} image नहीं है।`
-      );
+      publicId:
+        uploaded.publicId,
 
-    }
+      resourceType:
+        uploaded.resourceType,
 
+      width:
+        uploaded.width,
 
-    if (
-      file.size >
-      MAX_IMAGE_SIZE
-    ) {
+      height:
+        uploaded.height,
 
-      throw new Error(
-        `${file.name} 15 MB से बड़ी है।`
-      );
-
-    }
-
+      format:
+        uploaded.format,
+    });
   }
 
-
-  // =====================================
-  // UPLOAD GALLERY IMAGES
-  // =====================================
-
-  const galleryImageUrls = [];
-
-
-  for (
-    const file of filesToUpload
-  ) {
-
-    const uploadedUrl =
-      await uploadImageToCloudinary(
-        file,
-        "yuva-sarathi-events"
-      );
-
-
-    galleryImageUrls.push(
-      uploadedUrl
-    );
-
-  }
-
-
-  // =====================================
-  // FIRESTORE
-  // =====================================
+  /* =======================================================
+     FIRESTORE EVENT DOCUMENT
+  ======================================================= */
 
   const eventData = {
-
-    title:
-      title.trim(),
+    title: title.trim(),
 
     date,
 
-    location:
-      location.trim(),
+    location: location.trim(),
 
     description:
       description.trim(),
 
-    // OLD COVER IMAGE FIELD
+    /*
+      Public Events component directly
+      galleryImages read कर सकता है.
+    */
+    galleryImages,
+
+    /*
+      Compatibility with old code.
+    */
+    imageUrls:
+      galleryImages.map(
+        (image) => image.url
+      ),
+
+    /*
+      First image as cover.
+    */
     image:
-      imageUrl,
+      galleryImages[0]?.url || "",
 
-    // NEW MULTIPLE IMAGE FIELD
-    galleryImages:
-      galleryImageUrls,
-
-    // Number of gallery images
-    galleryImageCount:
-      galleryImageUrls.length,
+    imageUrl:
+      galleryImages[0]?.url || "",
 
     createdAt:
       serverTimestamp(),
-
   };
 
-
-  // =====================================
-  // SAVE EVENT
-  // =====================================
-
-  return addDoc(
-    collection(
-      db,
-      "events"
-    ),
-    eventData
+  const eventsRef = collection(
+    db,
+    EVENTS_COLLECTION
   );
 
-}
-
-
-// =====================================
-// GET EVENTS
-// =====================================
-
-export async function getEvents() {
-
-  const snapshot =
-    await getDocs(
-      collection(
-        db,
-        "events"
-      )
+  const documentReference =
+    await addDoc(
+      eventsRef,
+      eventData
     );
 
+  return {
+    id: documentReference.id,
+    ...eventData,
+  };
+}
 
-  return snapshot.docs.map(
-    (item) => {
+/* =========================================================
+   GET EVENTS
+========================================================= */
 
+export async function getEvents() {
+  const eventsRef = collection(
+    db,
+    EVENTS_COLLECTION
+  );
+
+  let snapshot;
+
+  try {
+    const eventsQuery = query(
+      eventsRef,
+      orderBy("createdAt", "desc")
+    );
+
+    snapshot = await getDocs(
+      eventsQuery
+    );
+  } catch (error) {
+    console.warn(
+      "Ordered events query failed. Loading without order:",
+      error
+    );
+
+    snapshot = await getDocs(
+      eventsRef
+    );
+  }
+
+  return snapshot.docs
+    .map((document) => {
       const data =
-        item.data();
-
+        document.data();
 
       return {
-
-        id:
-          item.id,
+        id: document.id,
 
         ...data,
-
-        // =================================
-        // SAFETY
-        // =================================
-        // अगर पुराना event है जिसमें
-        // galleryImages नहीं है,
-        // तो empty array देगा।
 
         galleryImages:
           Array.isArray(
@@ -391,41 +285,63 @@ export async function getEvents() {
             ? data.galleryImages
             : [],
 
+        image:
+          data.image ||
+          data.imageUrl ||
+          data.imageUrls?.[0] ||
+          "",
+      };
+    })
+    .sort((a, b) => {
+      const getTime = (value) => {
+        if (!value) return 0;
+
+        if (
+          typeof value.toMillis ===
+          "function"
+        ) {
+          return value.toMillis();
+        }
+
+        return (
+          new Date(value).getTime() ||
+          0
+        );
       };
 
-    }
-  );
-
+      return (
+        getTime(b.createdAt) -
+        getTime(a.createdAt)
+      );
+    });
 }
 
+/* =========================================================
+   DELETE EVENT
+=========================================================
 
-// =====================================
-// DELETE EVENT
-// =====================================
+   IMPORTANT:
+   ONLY FIRESTORE DOCUMENT IS DELETED.
+
+   CLOUDINARY IMAGES ARE NOT DELETED.
+========================================================= */
 
 export async function deleteEvent(
   eventId
 ) {
-
   if (!eventId) {
-
     throw new Error(
-      "Event ID नहीं मिली।"
+      "Event ID missing."
     );
-
   }
-
-
-  // =====================================
-  // DELETE FIRESTORE EVENT
-  // =====================================
 
   await deleteDoc(
     doc(
       db,
-      "events",
+      EVENTS_COLLECTION,
       eventId
     )
   );
 
+  return true;
 }

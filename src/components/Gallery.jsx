@@ -10,102 +10,73 @@ import {
 import {
   collection,
   getDocs,
+  orderBy,
+  query,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase.js";
 
 function Gallery() {
-  // ==========================================
-  // STATES
-  // ==========================================
-
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedImage, setSelectedImage] =
+    useState(null);
 
-  const [showAll, setShowAll] = useState(false);
+  const [selectedIndex, setSelectedIndex] =
+    useState(0);
 
-  const [slideIndex, setSlideIndex] = useState(0);
+  const [showAll, setShowAll] =
+    useState(false);
 
-  // ==========================================
-  // ONLY FIRST 8 IMAGES FOR SLIDER
-  // ==========================================
+  const [slideIndex, setSlideIndex] =
+    useState(0);
 
-  const sliderImages = useMemo(() => {
-    return images.slice(0, 8);
-  }, [images]);
-
-  // ==========================================
-  // LOAD GALLERY FROM FIREBASE
-  // ==========================================
+  const sliderImages = useMemo(
+    () => images.slice(0, 8),
+    [images]
+  );
 
   useEffect(() => {
     let mounted = true;
 
     const loadGallery = async () => {
       try {
-        const galleryRef = collection(db, "gallery");
+        const galleryRef =
+          collection(db, "gallery");
 
-        const snapshot = await getDocs(galleryRef);
+        const galleryQuery = query(
+          galleryRef,
+          orderBy("createdAt", "desc")
+        );
 
-        const galleryImages = snapshot.docs
-          .map((document) => {
-            const data = document.data();
+        const snapshot =
+          await getDocs(galleryQuery);
 
-            return {
-              id: document.id,
+        const galleryImages =
+          snapshot.docs
+            .map((item) => {
+              const data = item.data();
 
-              image:
-                data.imageUrl ||
-                data.image ||
-                data.photo ||
-                "",
-
-              caption:
-                data.caption ||
-                data.title ||
-                "संस्था की गतिविधि",
-
-              createdAt:
-                data.createdAt || null,
-            };
-          })
-          .filter((item) => item.image);
-
-        // ======================================
-        // SORT NEWEST FIRST
-        // ======================================
-
-        galleryImages.sort((a, b) => {
-          const getTime = (value) => {
-            if (!value) {
-              return 0;
-            }
-
-            if (
-              typeof value.toMillis === "function"
-            ) {
-              return value.toMillis();
-            }
-
-            if (value instanceof Date) {
-              return value.getTime();
-            }
-
-            const time = new Date(value).getTime();
-
-            return Number.isNaN(time)
-              ? 0
-              : time;
-          };
-
-          return (
-            getTime(b.createdAt) -
-            getTime(a.createdAt)
-          );
-        });
+              return {
+                id: item.id,
+                image:
+                  data.imageUrl ||
+                  data.secureUrl ||
+                  data.image ||
+                  data.photo ||
+                  "",
+                caption:
+                  data.caption ||
+                  data.title ||
+                  "संस्था की गतिविधि",
+                createdAt:
+                  data.createdAt || null,
+              };
+            })
+            .filter(
+              (item) => item.image
+            );
 
         if (mounted) {
           setImages(galleryImages);
@@ -115,6 +86,10 @@ function Gallery() {
           "Gallery load error:",
           error
         );
+
+        if (mounted) {
+          setImages([]);
+        }
       } finally {
         if (mounted) {
           setLoading(false);
@@ -129,12 +104,10 @@ function Gallery() {
     };
   }, []);
 
-  // ==========================================
-  // RESPONSIVE VISIBLE COUNT
-  // ==========================================
-
   const getVisibleCount = () => {
-    if (typeof window === "undefined") {
+    if (
+      typeof window === "undefined"
+    ) {
       return 1;
     }
 
@@ -149,34 +122,17 @@ function Gallery() {
     return 1;
   };
 
-  // ==========================================
-  // VISIBLE COUNT
-  // ==========================================
-
-  const visibleCount = getVisibleCount();
-
-  // ==========================================
-  // REAL MAX INDEX
-  // ==========================================
+  const visibleCount =
+    getVisibleCount();
 
   const realMaxIndex = Math.max(
     0,
-    sliderImages.length - visibleCount
+    sliderImages.length -
+      visibleCount
   );
 
-  // ==========================================
-  // LOOP SLIDES
-  //
-  // Example:
-  //
-  // [1 2 3 4 5 6 7 8]
-  // [1 2 3]
-  //
-  // Extra cloned slides are added at end.
-  // ==========================================
-
   const loopImages = useMemo(() => {
-    if (sliderImages.length === 0) {
+    if (!sliderImages.length) {
       return [];
     }
 
@@ -185,215 +141,174 @@ function Gallery() {
       sliderImages.length
     );
 
-    const clones = sliderImages.slice(
-      0,
-      cloneCount
-    );
-
     return [
       ...sliderImages,
-      ...clones,
+      ...sliderImages.slice(
+        0,
+        cloneCount
+      ),
     ];
-  }, [sliderImages, visibleCount]);
-
-  // ==========================================
-  // AUTO SLIDER
-  // ==========================================
+  }, [
+    sliderImages,
+    visibleCount,
+  ]);
 
   useEffect(() => {
     if (
       showAll ||
       sliderImages.length <= 1
     ) {
-      return undefined;
+      return;
     }
 
     const timer = setInterval(() => {
-      setSlideIndex((current) => {
-        return current + 1;
-      });
+      setSlideIndex(
+        (current) => current + 1
+      );
     }, 4000);
 
-    return () => {
+    return () =>
       clearInterval(timer);
-    };
   }, [
     showAll,
     sliderImages.length,
   ]);
 
-  // ==========================================
-  // HANDLE LOOP RESET
-  //
-  // IMPORTANT:
-  // This uses requestAnimationFrame instead
-  // of directly calling setState inside effect.
-  // ==========================================
-
   useEffect(() => {
     if (
-      sliderImages.length === 0 ||
-      slideIndex < sliderImages.length
+      slideIndex <
+      sliderImages.length
     ) {
-      return undefined;
+      return;
     }
 
-    const resetTimer = window.setTimeout(() => {
-      setSlideIndex(0);
-    }, 750);
+    const timer =
+      window.setTimeout(() => {
+        setSlideIndex(0);
+      }, 750);
 
-    return () => {
-      window.clearTimeout(resetTimer);
-    };
+    return () =>
+      window.clearTimeout(timer);
   }, [
     slideIndex,
     sliderImages.length,
   ]);
-
-  // ==========================================
-  // NEXT SLIDE
-  // ==========================================
 
   const nextSlide = () => {
     if (sliderImages.length <= 1) {
       return;
     }
 
-    setSlideIndex((current) => {
-      return current + 1;
-    });
+    setSlideIndex(
+      (current) => current + 1
+    );
   };
-
-  // ==========================================
-  // PREVIOUS SLIDE
-  // ==========================================
 
   const previousSlide = () => {
     if (sliderImages.length <= 1) {
       return;
     }
 
-    setSlideIndex((current) => {
-      if (current <= 0) {
-        return realMaxIndex;
+    setSlideIndex(
+      (current) => {
+        if (current <= 0) {
+          return realMaxIndex;
+        }
+
+        return current - 1;
       }
-
-      return current - 1;
-    });
+    );
   };
 
-  // ==========================================
-  // DOT CLICK
-  // ==========================================
-
-  const goToSlide = (index) => {
-    setSlideIndex(index);
-  };
-
-  // ==========================================
-  // OPEN FULL IMAGE
-  // ==========================================
-
-  const openImage = (image, index) => {
+  const openImage = (
+    image,
+    index
+  ) => {
     setSelectedImage(image);
     setSelectedIndex(index);
   };
-
-  // ==========================================
-  // CLOSE FULL IMAGE
-  // ==========================================
 
   const closeImage = () => {
     setSelectedImage(null);
   };
 
-  // ==========================================
-  // PREVIOUS FULL IMAGE
-  // ==========================================
-
   const previousImage = () => {
-    if (images.length === 0) {
+    if (!images.length) {
       return;
     }
 
-    setSelectedIndex((current) => {
-      const newIndex =
-        current === 0
-          ? images.length - 1
-          : current - 1;
+    setSelectedIndex(
+      (current) => {
+        const next =
+          current === 0
+            ? images.length - 1
+            : current - 1;
 
-      setSelectedImage(
-        images[newIndex]
-      );
+        setSelectedImage(
+          images[next]
+        );
 
-      return newIndex;
-    });
+        return next;
+      }
+    );
   };
-
-  // ==========================================
-  // NEXT FULL IMAGE
-  // ==========================================
 
   const nextImage = () => {
-    if (images.length === 0) {
+    if (!images.length) {
       return;
     }
 
-    setSelectedIndex((current) => {
-      const newIndex =
-        current === images.length - 1
-          ? 0
-          : current + 1;
+    setSelectedIndex(
+      (current) => {
+        const next =
+          current ===
+          images.length - 1
+            ? 0
+            : current + 1;
 
-      setSelectedImage(
-        images[newIndex]
-      );
+        setSelectedImage(
+          images[next]
+        );
 
-      return newIndex;
-    });
+        return next;
+      }
+    );
   };
 
-  // ==========================================
-  // KEYBOARD CONTROLS
-  // ==========================================
-
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!selectedImage) {
-        return;
-      }
+    const handleKeyDown =
+      (event) => {
+        if (!selectedImage) {
+          return;
+        }
 
-      if (event.key === "Escape") {
-        setSelectedImage(null);
-        return;
-      }
+        if (event.key === "Escape") {
+          closeImage();
+        }
 
-      if (event.key === "ArrowLeft") {
-        previousImage();
-        return;
-      }
+        if (event.key === "ArrowLeft") {
+          previousImage();
+        }
 
-      if (event.key === "ArrowRight") {
-        nextImage();
-      }
-    };
+        if (event.key === "ArrowRight") {
+          nextImage();
+        }
+      };
 
     window.addEventListener(
       "keydown",
       handleKeyDown
     );
 
-    return () => {
+    return () =>
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
-    };
-  }, [selectedImage, images]);
-
-  // ==========================================
-  // SCROLL TO GALLERY
-  // ==========================================
+  }, [
+    selectedImage,
+    images,
+  ]);
 
   const scrollToGallery = () => {
     document
@@ -404,240 +319,89 @@ function Gallery() {
       });
   };
 
-  // ==========================================
-  // LOADING
-  // ==========================================
-
   if (loading) {
     return (
       <section
         id="gallery"
-        className="
-          py-24
-          bg-gradient-to-b
-          from-white
-          via-green-50
-          to-white
-        "
+        className="py-24 bg-gradient-to-b from-white via-green-50 to-white"
       >
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-center">
+        <div className="max-w-7xl mx-auto px-5 text-center">
+          <FaImages className="text-6xl text-green-700 mx-auto" />
 
-            <div
-              className="
-                w-20
-                h-20
-                mx-auto
-                rounded-full
-                bg-green-100
-                flex
-                items-center
-                justify-center
-                shadow-lg
-              "
-            >
-              <FaImages className="text-4xl text-green-700" />
-            </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-6">
+            📸 हमारी गैलरी
+          </h2>
 
-            <h2
-              className="
-                text-4xl
-                md:text-5xl
-                font-bold
-                text-green-800
-                mt-6
-              "
-            >
-              📸 हमारी गैलरी
-            </h2>
-
-            <p className="text-gray-600 mt-5">
-              गैलरी लोड हो रही है...
-            </p>
-
-          </div>
+          <p className="text-gray-600 mt-5">
+            गैलरी लोड हो रही है...
+          </p>
         </div>
       </section>
     );
   }
 
-  // ==========================================
-  // MAIN
-  // ==========================================
-
   return (
     <>
       <section
         id="gallery"
-        className="
-          py-24
-          bg-gradient-to-b
-          from-white
-          via-green-50
-          to-white
-          overflow-hidden
-        "
+        className="py-24 bg-gradient-to-b from-white via-green-50 to-white overflow-hidden"
       >
         <div className="max-w-7xl mx-auto px-5">
 
-          {/* ====================================
-              HEADER
-          ==================================== */}
-
           <div className="text-center mb-14">
-
-            <div
-              className="
-                w-20
-                h-20
-                mx-auto
-                rounded-full
-                bg-green-100
-                flex
-                items-center
-                justify-center
-                shadow-xl
-              "
-            >
+            <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center shadow-xl">
               <FaImages className="text-4xl text-green-700" />
             </div>
 
-            <h2
-              className="
-                text-4xl
-                md:text-5xl
-                font-bold
-                text-green-800
-                mt-6
-              "
-            >
+            <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-6">
               📸 हमारी गैलरी
             </h2>
 
-            <p
-              className="
-                text-gray-600
-                mt-5
-                max-w-3xl
-                mx-auto
-                leading-8
-                text-lg
-              "
-            >
+            <p className="text-gray-600 mt-5 max-w-3xl mx-auto leading-8 text-lg">
               शिक्षा, स्वास्थ्य, पर्यावरण संरक्षण,
               समाज सेवा, रक्तदान, युवा कार्यक्रम
               एवं अन्य सामाजिक गतिविधियों की
               यादगार झलकियाँ।
             </p>
-
           </div>
-
-          {/* ====================================
-              EMPTY
-          ==================================== */}
 
           {images.length === 0 && (
             <div className="text-center py-12">
+              <FaImages className="text-5xl text-gray-400 mx-auto" />
 
-              <div
-                className="
-                  w-20
-                  h-20
-                  mx-auto
-                  rounded-full
-                  bg-gray-100
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-                <FaImages className="text-3xl text-gray-400" />
-              </div>
-
-              <p
-                className="
-                  text-gray-500
-                  text-lg
-                  mt-5
-                "
-              >
+              <p className="text-gray-500 text-lg mt-5">
                 अभी गैलरी में कोई तस्वीर उपलब्ध नहीं है।
               </p>
-
             </div>
           )}
-
-          {/* ====================================
-              SLIDER
-          ==================================== */}
 
           {sliderImages.length > 0 &&
             !showAll && (
               <>
-
                 <div className="relative">
-
-                  {/* LEFT BUTTON */}
 
                   {sliderImages.length > 1 && (
                     <button
                       type="button"
                       onClick={previousSlide}
-                      aria-label="Previous slide"
-                      className="
-                        absolute
-                        left-1
-                        md:left-0
-                        top-1/2
-                        -translate-y-1/2
-                        z-30
-                        w-12
-                        h-12
-                        rounded-full
-                        bg-white
-                        shadow-xl
-                        flex
-                        items-center
-                        justify-center
-                        text-green-700
-                        hover:bg-green-700
-                        hover:text-white
-                        transition-all
-                        duration-300
-                      "
+                      className="absolute left-1 md:left-0 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center text-green-700 hover:bg-green-700 hover:text-white transition"
                     >
                       <FaChevronLeft />
                     </button>
                   )}
 
-                  {/* =================================
-                      SLIDER WINDOW
-                  ================================= */}
-
-                  <div
-                    className="
-                      overflow-hidden
-                      mx-4
-                      md:mx-10
-                    "
-                  >
-
+                  <div className="overflow-hidden mx-4 md:mx-10">
                     <div
-                      className="
-                        flex
-                        will-change-transform
-                      "
+                      className="flex will-change-transform"
                       style={{
-                        transform: `translate3d(-${
-                          slideIndex *
-                          (100 / visibleCount)
-                        }%, 0, 0)`,
-
+                        transform:
+                          `translate3d(-${
+                            slideIndex *
+                            (100 /
+                              visibleCount)
+                          }%, 0, 0)`,
                         transition:
-                          slideIndex >=
-                          sliderImages.length
-                            ? "transform 750ms cubic-bezier(0.22, 1, 0.36, 1)"
-                            : "transform 750ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          "transform 750ms cubic-bezier(0.22,1,0.36,1)",
                       }}
                       onTransitionEnd={() => {
                         if (
@@ -648,45 +412,22 @@ function Gallery() {
                         }
                       }}
                     >
-
                       {loopImages.map(
                         (item, index) => (
                           <div
                             key={`${item.id}-${index}`}
-                            className="
-                              shrink-0
-                              w-full
-                              sm:w-1/2
-                              lg:w-1/3
-                              px-3
-                            "
+                            className="shrink-0 w-full sm:w-1/2 lg:w-1/3 px-3"
                           >
-
                             <div
-                              onClick={() => {
-                                const realIndex =
-                                  index %
-                                  sliderImages.length;
-
+                              onClick={() =>
                                 openImage(
                                   item,
-                                  realIndex
-                                );
-                              }}
-                              className="
-                                group
-                                relative
-                                overflow-hidden
-                                rounded-3xl
-                                shadow-xl
-                                bg-black
-                                cursor-pointer
-                                h-72
-                                sm:h-80
-                                lg:h-96
-                              "
+                                  index %
+                                    sliderImages.length
+                                )
+                              }
+                              className="group relative overflow-hidden rounded-3xl shadow-xl bg-black cursor-pointer h-72 sm:h-80 lg:h-96"
                             >
-
                               <img
                                 src={item.image}
                                 alt={item.caption}
@@ -696,213 +437,86 @@ function Gallery() {
                                     : "lazy"
                                 }
                                 decoding="async"
-                                className="
-                                  w-full
-                                  h-full
-                                  object-cover
-                                  transition-transform
-                                  duration-700
-                                  ease-out
-                                  group-hover:scale-105
-                                "
-                                onError={(event) => {
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                onError={(
+                                  event
+                                ) => {
                                   event.currentTarget.style.display =
                                     "none";
                                 }}
                               />
 
-                              {/* OVERLAY */}
-
-                              <div
-                                className="
-                                  absolute
-                                  inset-0
-                                  bg-black/0
-                                  group-hover:bg-black/50
-                                  transition-all
-                                  duration-500
-                                  flex
-                                  items-end
-                                "
-                              >
-
-                                <div
-                                  className="
-                                    w-full
-                                    p-5
-                                    translate-y-5
-                                    opacity-0
-                                    group-hover:translate-y-0
-                                    group-hover:opacity-100
-                                    transition-all
-                                    duration-500
-                                  "
-                                >
-                                  <p
-                                    className="
-                                      text-white
-                                      font-semibold
-                                      text-lg
-                                    "
-                                  >
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition flex items-end">
+                                <div className="w-full p-5 translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+                                  <p className="text-white font-semibold text-lg">
                                     {item.caption}
                                   </p>
                                 </div>
-
                               </div>
-
                             </div>
-
                           </div>
                         )
                       )}
-
                     </div>
-
                   </div>
-
-                  {/* RIGHT BUTTON */}
 
                   {sliderImages.length > 1 && (
                     <button
                       type="button"
                       onClick={nextSlide}
-                      aria-label="Next slide"
-                      className="
-                        absolute
-                        right-1
-                        md:right-0
-                        top-1/2
-                        -translate-y-1/2
-                        z-30
-                        w-12
-                        h-12
-                        rounded-full
-                        bg-white
-                        shadow-xl
-                        flex
-                        items-center
-                        justify-center
-                        text-green-700
-                        hover:bg-green-700
-                        hover:text-white
-                        transition-all
-                        duration-300
-                      "
+                      className="absolute right-1 md:right-0 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center text-green-700 hover:bg-green-700 hover:text-white transition"
                     >
                       <FaChevronRight />
                     </button>
                   )}
-
                 </div>
 
-                {/* =================================
-                    DOTS
-                ================================= */}
-
                 {sliderImages.length > 1 && (
-                  <div
-                    className="
-                      flex
-                      justify-center
-                      gap-2
-                      mt-8
-                    "
-                  >
-
+                  <div className="flex justify-center gap-2 mt-8">
                     {sliderImages.map(
                       (_, index) => (
                         <button
                           key={index}
                           type="button"
                           onClick={() =>
-                            goToSlide(index)
+                            setSlideIndex(index)
                           }
-                          aria-label={`Slide ${
-                            index + 1
+                          className={`h-2.5 rounded-full transition ${
+                            slideIndex ===
+                            index
+                              ? "w-8 bg-green-700"
+                              : "w-2.5 bg-green-300"
                           }`}
-                          className={`
-                            h-2.5
-                            rounded-full
-                            transition-all
-                            duration-300
-                            ${
-                              slideIndex ===
-                              index
-                                ? "w-8 bg-green-700"
-                                : "w-2.5 bg-green-300"
-                            }
-                          `}
                         />
                       )
                     )}
-
                   </div>
                 )}
 
-                {/* =================================
-                    VIEW ALL
-                ================================= */}
-
-                <div
-                  className="
-                    flex
-                    justify-center
-                    mt-12
-                  "
-                >
+                <div className="flex justify-center mt-12">
                   <button
                     type="button"
                     onClick={() => {
                       setShowAll(true);
                       setSlideIndex(0);
 
-                      window.setTimeout(() => {
-                        scrollToGallery();
-                      }, 50);
+                      window.setTimeout(
+                        scrollToGallery,
+                        50
+                      );
                     }}
-                    className="
-                      bg-gradient-to-r
-                      from-green-700
-                      to-green-900
-                      text-white
-                      px-9
-                      py-4
-                      rounded-full
-                      font-semibold
-                      text-lg
-                      shadow-lg
-                      hover:scale-105
-                      hover:shadow-2xl
-                      transition-all
-                      duration-300
-                    "
+                    className="bg-gradient-to-r from-green-700 to-green-900 text-white px-9 py-4 rounded-full font-semibold text-lg shadow-lg hover:scale-105 transition"
                   >
                     📸 View All
                   </button>
                 </div>
-
               </>
             )}
-
-          {/* ====================================
-              ALL IMAGES
-          ==================================== */}
 
           {showAll &&
             images.length > 0 && (
               <>
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    lg:grid-cols-3
-                    gap-7
-                  "
-                >
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
                   {images.map(
                     (item, index) => (
                       <div
@@ -913,131 +527,51 @@ function Gallery() {
                             index
                           )
                         }
-                        className="
-                          group
-                          relative
-                          overflow-hidden
-                          rounded-3xl
-                          shadow-xl
-                          bg-black
-                          cursor-pointer
-                          h-72
-                          sm:h-80
-                          lg:h-96
-                        "
+                        className="group relative overflow-hidden rounded-3xl shadow-xl bg-black cursor-pointer h-72 sm:h-80 lg:h-96"
                       >
-
                         <img
                           src={item.image}
                           alt={item.caption}
                           loading="lazy"
                           decoding="async"
-                          className="
-                            w-full
-                            h-full
-                            object-cover
-                            transition-transform
-                            duration-700
-                            ease-out
-                            group-hover:scale-105
-                          "
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           onError={(event) => {
                             event.currentTarget.style.display =
                               "none";
                           }}
                         />
 
-                        <div
-                          className="
-                            absolute
-                            inset-0
-                            bg-black/0
-                            group-hover:bg-black/50
-                            transition-all
-                            duration-500
-                            flex
-                            items-end
-                          "
-                        >
-
-                          <div
-                            className="
-                              w-full
-                              p-5
-                              translate-y-5
-                              opacity-0
-                              group-hover:translate-y-0
-                              group-hover:opacity-100
-                              transition-all
-                              duration-500
-                            "
-                          >
-                            <p
-                              className="
-                                text-white
-                                font-semibold
-                                text-lg
-                              "
-                            >
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition flex items-end">
+                          <div className="w-full p-5 translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+                            <p className="text-white font-semibold text-lg">
                               {item.caption}
                             </p>
                           </div>
-
                         </div>
-
                       </div>
                     )
                   )}
-
                 </div>
 
-                {/* BACK BUTTON */}
-
-                <div
-                  className="
-                    flex
-                    justify-center
-                    mt-12
-                  "
-                >
+                <div className="flex justify-center mt-12">
                   <button
                     type="button"
                     onClick={() => {
                       setShowAll(false);
                       setSlideIndex(0);
 
-                      window.setTimeout(() => {
-                        scrollToGallery();
-                      }, 50);
+                      window.setTimeout(
+                        scrollToGallery,
+                        50
+                      );
                     }}
-                    className="
-                      border-2
-                      border-green-700
-                      text-green-700
-                      bg-white
-                      px-9
-                      py-4
-                      rounded-full
-                      font-semibold
-                      text-lg
-                      shadow-lg
-                      hover:bg-green-700
-                      hover:text-white
-                      hover:scale-105
-                      transition-all
-                      duration-300
-                    "
+                    className="border-2 border-green-700 text-green-700 bg-white px-9 py-4 rounded-full font-semibold text-lg hover:bg-green-700 hover:text-white transition"
                   >
                     🔙 वापस स्लाइडर पर
                   </button>
                 </div>
-
               </>
             )}
-
-          {/* ====================================
-              TOTAL
-          ==================================== */}
 
           {images.length > 0 && (
             <div className="text-center mt-10">
@@ -1046,57 +580,21 @@ function Gallery() {
               </p>
             </div>
           )}
-
         </div>
       </section>
 
-      {/* ========================================
-          FULL SCREEN IMAGE
-      ======================================== */}
-
       {selectedImage && (
         <div
-          className="
-            fixed
-            inset-0
-            z-[9999]
-            bg-black/95
-            flex
-            items-center
-            justify-center
-            p-4
-          "
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
           onClick={closeImage}
         >
-
-          {/* CLOSE */}
-
           <button
             type="button"
             onClick={closeImage}
-            aria-label="Close"
-            className="
-              absolute
-              top-5
-              right-5
-              z-30
-              w-12
-              h-12
-              rounded-full
-              bg-white/10
-              hover:bg-white/25
-              text-white
-              flex
-              items-center
-              justify-center
-              text-xl
-              transition
-            "
+            className="absolute top-5 right-5 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center"
           >
             <FaTimes />
           </button>
-
-          {/* PREVIOUS */}
 
           {images.length > 1 && (
             <button
@@ -1105,90 +603,32 @@ function Gallery() {
                 event.stopPropagation();
                 previousImage();
               }}
-              aria-label="Previous image"
-              className="
-                absolute
-                left-3
-                md:left-8
-                z-30
-                w-12
-                h-12
-                rounded-full
-                bg-white/10
-                hover:bg-white/25
-                text-white
-                flex
-                items-center
-                justify-center
-                text-xl
-                transition
-              "
+              className="absolute left-3 md:left-8 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center"
             >
               <FaChevronLeft />
             </button>
           )}
 
-          {/* IMAGE */}
-
           <div
-            className="
-              relative
-              max-w-7xl
-              max-h-[95vh]
-              flex
-              flex-col
-              items-center
-              justify-center
-            "
+            className="relative max-w-7xl max-h-[95vh] flex flex-col items-center justify-center"
             onClick={(event) =>
               event.stopPropagation()
             }
           >
-
             <img
               src={selectedImage.image}
               alt={selectedImage.caption}
-              className="
-                max-w-[92vw]
-                max-h-[82vh]
-                md:max-h-[88vh]
-                w-auto
-                h-auto
-                object-contain
-                rounded-xl
-                shadow-2xl
-              "
+              className="max-w-[92vw] max-h-[82vh] md:max-h-[88vh] object-contain rounded-xl shadow-2xl"
             />
 
-            <div className="text-center mt-4">
+            <p className="text-white text-lg font-medium mt-4">
+              {selectedImage.caption}
+            </p>
 
-              <p
-                className="
-                  text-white
-                  text-base
-                  md:text-lg
-                  font-medium
-                "
-              >
-                {selectedImage.caption}
-              </p>
-
-              <p
-                className="
-                  text-white/60
-                  text-sm
-                  mt-1
-                "
-              >
-                {selectedIndex + 1} /{" "}
-                {images.length}
-              </p>
-
-            </div>
-
+            <p className="text-white/60 text-sm mt-1">
+              {selectedIndex + 1} / {images.length}
+            </p>
           </div>
-
-          {/* NEXT */}
 
           {images.length > 1 && (
             <button
@@ -1197,29 +637,11 @@ function Gallery() {
                 event.stopPropagation();
                 nextImage();
               }}
-              aria-label="Next image"
-              className="
-                absolute
-                right-3
-                md:right-8
-                z-30
-                w-12
-                h-12
-                rounded-full
-                bg-white/10
-                hover:bg-white/25
-                text-white
-                flex
-                items-center
-                justify-center
-                text-xl
-                transition
-              "
+              className="absolute right-3 md:right-8 z-30 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center"
             >
               <FaChevronRight />
             </button>
           )}
-
         </div>
       )}
     </>

@@ -21,39 +21,50 @@ function Events() {
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [deleteLoading, setDeleteLoading] =
-    useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(null);
 
   const [message, setMessage] = useState("");
 
+  // ==========================================
+  // LOAD EVENTS
+  // ==========================================
+
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
-    getEvents()
-      .then((data) => {
-        if (!mounted) return;
+    async function loadEvents() {
+      try {
+        const data = await getEvents();
 
-        setEvents(data || []);
-      })
-      .catch((error) => {
+        if (!cancelled) {
+          setEvents(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
         console.error("Events load error:", error);
 
-        if (mounted) {
+        if (!cancelled) {
           setMessage(
-            "कार्यक्रम लोड नहीं हो सके।"
+            error?.message ||
+              "कार्यक्रम लोड नहीं हो सके।"
           );
         }
-      })
-      .finally(() => {
-        if (mounted) {
+      } finally {
+        if (!cancelled) {
           setLoading(false);
         }
-      });
+      }
+    }
+
+    loadEvents();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
+
+  // ==========================================
+  // IMAGE SELECT
+  // ==========================================
 
   function handleImageSelect(event) {
     const files = Array.from(
@@ -111,6 +122,10 @@ function Events() {
       `${files.length} तस्वीरें चुनी गई हैं।`
     );
   }
+
+  // ==========================================
+  // CREATE EVENT
+  // ==========================================
 
   async function handleCreateEvent(event) {
     event.preventDefault();
@@ -173,7 +188,11 @@ function Events() {
 
       const updatedEvents = await getEvents();
 
-      setEvents(updatedEvents || []);
+      setEvents(
+        Array.isArray(updatedEvents)
+          ? updatedEvents
+          : []
+      );
 
       setMessage(
         "कार्यक्रम और उसकी सभी तस्वीरें सफलतापूर्वक जोड़ दी गईं! 🎉"
@@ -193,14 +212,22 @@ function Events() {
     }
   }
 
+  // ==========================================
+  // DELETE EVENT
+  // ==========================================
+
   async function handleDeleteEvent(eventId) {
-    if (!eventId) return;
+    if (!eventId) {
+      return;
+    }
 
     const confirmed = window.confirm(
       "क्या आप यह पूरा कार्यक्रम हटाना चाहते हैं?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setDeleteLoading(eventId);
@@ -208,8 +235,8 @@ function Events() {
 
       await deleteEvent(eventId);
 
-      setEvents((previous) =>
-        previous.filter(
+      setEvents((previousEvents) =>
+        previousEvents.filter(
           (item) => item.id !== eventId
         )
       );
@@ -232,17 +259,30 @@ function Events() {
     }
   }
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <section className="admin-section">
+      {/* ======================================
+          HEADER
+      ====================================== */}
+
       <div className="admin-section-header">
         <div>
           <h2>🎉 कार्यक्रम / Karyakram</h2>
 
           <p>
-            संस्था के कार्यक्रम यहाँ जोड़ें और मैनेज करें।
+            संस्था के कार्यक्रम यहाँ जोड़ें और
+            मैनेज करें।
           </p>
         </div>
       </div>
+
+      {/* ======================================
+          MESSAGE
+      ====================================== */}
 
       {message && (
         <div className="admin-message">
@@ -250,10 +290,16 @@ function Events() {
         </div>
       )}
 
+      {/* ======================================
+          ADD EVENT FORM
+      ====================================== */}
+
       <form
         className="admin-form"
         onSubmit={handleCreateEvent}
       >
+        {/* EVENT TITLE */}
+
         <div className="form-group">
           <label>कार्यक्रम का नाम</label>
 
@@ -268,6 +314,8 @@ function Events() {
           />
         </div>
 
+        {/* EVENT DATE */}
+
         <div className="form-group">
           <label>कार्यक्रम की तारीख</label>
 
@@ -280,6 +328,8 @@ function Events() {
             required
           />
         </div>
+
+        {/* EVENT LOCATION */}
 
         <div className="form-group">
           <label>कार्यक्रम का स्थान</label>
@@ -295,6 +345,8 @@ function Events() {
           />
         </div>
 
+        {/* EVENT DESCRIPTION */}
+
         <div className="form-group">
           <label>कार्यक्रम का विवरण</label>
 
@@ -308,6 +360,8 @@ function Events() {
             required
           />
         </div>
+
+        {/* EVENT IMAGES */}
 
         <div className="form-group">
           <label>
@@ -328,6 +382,8 @@ function Events() {
           />
         </div>
 
+        {/* SELECTED IMAGE PREVIEW */}
+
         {images.length > 0 && (
           <div className="selected-images">
             <h4>
@@ -342,7 +398,7 @@ function Events() {
                 return (
                   <div
                     className="image-preview"
-                    key={`${file.name}-${index}`}
+                    key={`${file.name}-${file.lastModified}-${index}`}
                   >
                     <img
                       src={preview}
@@ -361,6 +417,8 @@ function Events() {
           </div>
         )}
 
+        {/* SUBMIT */}
+
         <button
           type="submit"
           className="primary-button"
@@ -372,12 +430,18 @@ function Events() {
         </button>
       </form>
 
+      {/* ======================================
+          EVENTS LIST
+      ====================================== */}
+
       <div className="admin-list-section">
         <h2>जोड़े गए कार्यक्रम</h2>
 
         {loading ? (
           <div className="admin-empty">
-            <p>कार्यक्रम लोड हो रहे हैं...</p>
+            <p>
+              कार्यक्रम लोड हो रहे हैं...
+            </p>
           </div>
         ) : events.length === 0 ? (
           <div className="admin-empty">
@@ -396,6 +460,8 @@ function Events() {
                 key={eventItem.id}
                 className="event-admin-card"
               >
+                {/* COVER IMAGE */}
+
                 {eventItem.image && (
                   <img
                     src={eventItem.image}
@@ -407,9 +473,12 @@ function Events() {
                   />
                 )}
 
+                {/* CONTENT */}
+
                 <div className="event-admin-content">
                   <h3>
-                    {eventItem.title}
+                    {eventItem.title ||
+                      "बिना नाम का कार्यक्रम"}
                   </h3>
 
                   <p>
@@ -427,17 +496,22 @@ function Events() {
                     {eventItem.description || "-"}
                   </p>
 
-                  {eventItem.galleryImages?.length >
-                    0 && (
-                    <p>
-                      📷{" "}
-                      {
-                        eventItem.galleryImages
-                          .length
-                      }{" "}
-                      तस्वीरें
-                    </p>
-                  )}
+                  {Array.isArray(
+                    eventItem.galleryImages
+                  ) &&
+                    eventItem.galleryImages.length >
+                      0 && (
+                      <p>
+                        📷{" "}
+                        {
+                          eventItem.galleryImages
+                            .length
+                        }{" "}
+                        तस्वीरें
+                      </p>
+                    )}
+
+                  {/* DELETE */}
 
                   <button
                     type="button"

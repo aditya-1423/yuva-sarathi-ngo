@@ -24,37 +24,51 @@ function Gallery() {
 
   const [message, setMessage] = useState("");
 
+  // ==========================================
+  // LOAD GALLERY
+  // ==========================================
+
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
-    getGalleryImages()
-      .then((data) => {
-        if (!mounted) return;
+    async function loadGallery() {
+      try {
+        const data = await getGalleryImages();
 
-        setGalleryImages(data || []);
-      })
-      .catch((error) => {
+        if (!cancelled) {
+          setGalleryImages(
+            Array.isArray(data) ? data : []
+          );
+        }
+      } catch (error) {
         console.error(
           "Gallery load error:",
           error
         );
 
-        if (mounted) {
+        if (!cancelled) {
           setMessage(
-            "गैलरी की तस्वीरें लोड नहीं हो सकीं।"
+            error?.message ||
+              "गैलरी की तस्वीरें लोड नहीं हो सकीं।"
           );
         }
-      })
-      .finally(() => {
-        if (mounted) {
+      } finally {
+        if (!cancelled) {
           setLoading(false);
         }
-      });
+      }
+    }
+
+    loadGallery();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
+
+  // ==========================================
+  // IMAGE SELECT
+  // ==========================================
 
   function handleImageSelect(event) {
     const files = Array.from(
@@ -102,6 +116,10 @@ function Gallery() {
     );
   }
 
+  // ==========================================
+  // UPLOAD GALLERY IMAGES
+  // ==========================================
+
   async function handleUpload(event) {
     event.preventDefault();
 
@@ -131,7 +149,11 @@ function Gallery() {
       const updatedImages =
         await getGalleryImages();
 
-      setGalleryImages(updatedImages || []);
+      setGalleryImages(
+        Array.isArray(updatedImages)
+          ? updatedImages
+          : []
+      );
 
       setMessage(
         `${totalImages} तस्वीरें सफलतापूर्वक अपलोड हो गईं! 🎉`
@@ -151,14 +173,22 @@ function Gallery() {
     }
   }
 
+  // ==========================================
+  // DELETE IMAGE
+  // ==========================================
+
   async function handleDelete(imageId) {
-    if (!imageId) return;
+    if (!imageId) {
+      return;
+    }
 
     const confirmed = window.confirm(
       "क्या आप यह तस्वीर हटाना चाहते हैं?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setDeleteLoading(imageId);
@@ -166,8 +196,8 @@ function Gallery() {
 
       await deleteGalleryImage(imageId);
 
-      setGalleryImages((previous) =>
-        previous.filter(
+      setGalleryImages((previousImages) =>
+        previousImages.filter(
           (image) => image.id !== imageId
         )
       );
@@ -190,8 +220,16 @@ function Gallery() {
     }
   }
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <section className="admin-section">
+      {/* ======================================
+          HEADER
+      ====================================== */}
+
       <div className="admin-section-header">
         <div>
           <h2>🖼️ Gallery</h2>
@@ -207,16 +245,26 @@ function Gallery() {
         </span>
       </div>
 
+      {/* ======================================
+          MESSAGE
+      ====================================== */}
+
       {message && (
         <div className="admin-message">
           {message}
         </div>
       )}
 
+      {/* ======================================
+          UPLOAD FORM
+      ====================================== */}
+
       <form
         className="admin-form"
         onSubmit={handleUpload}
       >
+        {/* IMAGE INPUT */}
+
         <div className="form-group">
           <label>
             तस्वीरें चुनें
@@ -235,6 +283,8 @@ function Gallery() {
           />
         </div>
 
+        {/* SELECTED IMAGE PREVIEW */}
+
         {selectedImages.length > 0 && (
           <div className="selected-images">
             <h4>
@@ -251,7 +301,7 @@ function Gallery() {
                   return (
                     <div
                       className="image-preview"
-                      key={`${file.name}-${index}`}
+                      key={`${file.name}-${file.lastModified}-${index}`}
                     >
                       <img
                         src={preview}
@@ -269,6 +319,8 @@ function Gallery() {
           </div>
         )}
 
+        {/* CAPTION */}
+
         <div className="form-group">
           <label>
             तस्वीर का विवरण
@@ -284,6 +336,8 @@ function Gallery() {
           />
         </div>
 
+        {/* SUBMIT */}
+
         <button
           type="submit"
           className="primary-button"
@@ -294,6 +348,10 @@ function Gallery() {
             : "➕ तस्वीरें जोड़ें"}
         </button>
       </form>
+
+      {/* ======================================
+          GALLERY LIST
+      ====================================== */}
 
       <div className="admin-list-section">
         <h2>
@@ -327,8 +385,15 @@ function Gallery() {
                 key={image.id}
                 className="gallery-admin-card"
               >
+                {/* IMAGE */}
+
                 <img
-                  src={image.imageUrl}
+                  src={
+                    image.imageUrl ||
+                    image.image ||
+                    image.photo ||
+                    ""
+                  }
                   alt={
                     image.caption ||
                     "Gallery image"
@@ -336,11 +401,15 @@ function Gallery() {
                   className="gallery-admin-image"
                 />
 
+                {/* CONTENT */}
+
                 <div className="gallery-admin-content">
                   <p>
                     {image.caption ||
                       "संस्था की गतिविधि"}
                   </p>
+
+                  {/* DELETE */}
 
                   <button
                     type="button"
