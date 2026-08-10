@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import Management from "./components/Management.jsx";
 
+import logo from "../assets/logo.png";
+
 import AdminNavbar from "./components/AdminNavbar.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Membership from "./components/Membership.jsx";
@@ -63,6 +65,21 @@ function AdminPortal({ user, onLogout }) {
         setActiveSection={setActiveSection}
         onLogout={onLogout}
       />
+
+
+
+<div className="flex items-center gap-2">
+  <img
+    src={logo}
+    alt="युवा सारथी सेवा संस्था"
+    className="h-10 w-10 object-contain shrink-0"
+  />
+
+  <span className="font-bold text-green-800">
+    युवा सारथी
+  </span>
+</div>
+
 
 
       {/* ======================================

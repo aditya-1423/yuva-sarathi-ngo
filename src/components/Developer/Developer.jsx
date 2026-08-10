@@ -5,6 +5,8 @@ import {
 
 import "./Developer.css";
 
+import developerImage from "../../assets/aditya.jpg";
+
 function Developer() {
   return (
     <section
@@ -32,11 +34,11 @@ function Developer() {
         <div className="developer-card">
 
           <div className="developer-image-wrapper">
-            <img
-              src="/src/assets/aditya.jpg"
-              alt="Aditya Verma"
-              className="developer-image"
-            />
+           <img
+  src={developerImage}
+  alt="Aditya Verma"
+  className="developer-image"
+/>
           </div>
 
           <div className="developer-content">

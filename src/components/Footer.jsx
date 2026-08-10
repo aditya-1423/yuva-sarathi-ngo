@@ -88,7 +88,7 @@ const Footer = () => {
 
     {
       name: "हमारा मिशन",
-      href: "#Mission",
+      href: "#about",
     },
 
     {

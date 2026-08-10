@@ -4,13 +4,17 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 
+import nokeshImage from "../assets/images/nokesh.jpeg";
+import gajendraImage from "../assets/logo.png";
+import teamImage from "../assets/logo.png";
+
 function Team() {
   const members = [
     {
       id: 1,
       name: "नोकेश कुमार मधुकर",
       role: "संस्थापक",
-      image: "/src/assets/nokesh.jpeg",
+      image: nokeshImage,
       color: "from-green-700 to-green-900",
     },
 
@@ -18,7 +22,7 @@ function Team() {
       id: 2,
       name: "गजेंद्र सिंह ठाकुर",
       role: "सह-संस्थापक",
-      image: "/src/assets/logo.png",
+      image: gajendraImage,
       color: "from-orange-500 to-orange-600",
     },
 
@@ -26,7 +30,7 @@ function Team() {
       id: 3,
       name: "टीम सदस्य",
       role: "मुख्य स्वयंसेवक",
-      image: "/src/assets/logo.png",
+      image: teamImage,
       color: "from-blue-600 to-blue-800",
     },
 
@@ -34,7 +38,7 @@ function Team() {
       id: 4,
       name: "टीम सदस्य",
       role: "स्वयंसेवक",
-      image: "/src/assets/logo.png",
+      image: teamImage,
       color: "from-pink-500 to-pink-700",
     },
 
@@ -42,7 +46,7 @@ function Team() {
       id: 5,
       name: "टीम सदस्य",
       role: "स्वयंसेवक",
-      image: "/src/assets/logo.png",
+      image: teamImage,
       color: "from-purple-500 to-purple-700",
     },
 
@@ -50,7 +54,7 @@ function Team() {
       id: 6,
       name: "टीम सदस्य",
       role: "स्वयंसेवक",
-      image: "/src/assets/logo.png",
+      image: teamImage,
       color: "from-teal-500 to-teal-700",
     },
   ];
@@ -96,7 +100,7 @@ function Team() {
                 <img
                   src={member.image}
                   alt={member.name}
-                  className="w-full h-80 object-cover group-hover:scale-110 transition duration-700"
+                  className="w-full h-80 object-cover group-hover:scale-105 transition duration-500"
                 />
 
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition"></div>

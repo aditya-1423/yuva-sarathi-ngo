@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 import { getEvents } from "../../firebase/events.js";
 import { getGalleryImages } from "../../firebase/gallery.js";
+
+import logo from "../../assets/logo.png";
+
 import {
   getMembershipApplications,
 } from "../../firebase/volunteer.js";
@@ -130,7 +133,7 @@ function Dashboard({ setActiveSection }) {
 
         <div className="dashboard-hero-logo">
           <img
-            src="/src/assets/logo.png"
+            src={logo}
             alt="युवा सारथी"
           />
         </div>
@@ -139,6 +142,23 @@ function Dashboard({ setActiveSection }) {
       {/* ================================
           STATS
       ================================= */}
+
+{/* 
+================================
+LOGO   
+================================ */}
+
+<div className="flex items-center gap-2">
+  <img
+    src={logo}
+    alt="युवा सारथी सेवा संस्था"
+    className="h-10 w-10 object-contain shrink-0"
+  />
+
+  <span className="font-bold text-green-800">
+    युवा सारथी
+  </span>
+</div>
 
       {loading ? (
         <div className="admin-loading">
