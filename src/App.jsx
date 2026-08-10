@@ -18,6 +18,7 @@ import Footer from "./components/Footer";
 
 import AdminLogin from "./pages/AdminLogin";
 import AdminPortal from "./ADMIN PORTAL/AdminPortal";
+import Mission from "./components/Mission";
 
 
 // ==========================================
@@ -36,6 +37,7 @@ const validSections = [
   "faq",
   "donate",
   "contact",
+  "mission",
 ];
 
 
@@ -353,6 +355,17 @@ function App() {
         return (
           <Contact />
         );
+
+ // ======================================
+ // MISSION
+ // ======================================
+
+      case "mission":
+
+  return (
+    <Mission />
+  );
+
 
 
       // ======================================
