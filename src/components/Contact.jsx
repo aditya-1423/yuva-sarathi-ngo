@@ -1,5 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+
 import {
   FaPhoneAlt,
   FaEnvelope,
@@ -10,7 +11,12 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 
+import { addContactMessage } from "../firebase/contact.js";
+
 function Contact() {
+  // ==========================================
+  // FORM STATE
+  // ==========================================
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,44 +25,157 @@ function Contact() {
     message: "",
   });
 
+  // ==========================================
+  // SUBMIT LOADING
+  // ==========================================
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  // ==========================================
+  // INPUT CHANGE
+  // ==========================================
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  // ==========================================
+  // FORM SUBMIT
+  // ==========================================
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      toast.error("कृपया अपना नाम दर्ज करें");
+    // ------------------------------------------
+    // CLEAN DATA
+    // ------------------------------------------
+
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const phone = formData.phone.trim();
+    const message = formData.message.trim();
+
+    // ------------------------------------------
+    // NAME VALIDATION
+    // ------------------------------------------
+
+    if (!name) {
+      toast.error("कृपया अपना नाम दर्ज करें।");
       return;
     }
 
-    if (!formData.email.trim()) {
-      toast.error("कृपया अपना ईमेल दर्ज करें");
+    // ------------------------------------------
+    // EMAIL VALIDATION
+    // ------------------------------------------
+
+    if (!email) {
+      toast.error("कृपया अपना ईमेल दर्ज करें।");
       return;
     }
 
-    if (!formData.phone.trim()) {
-      toast.error("कृपया मोबाइल नंबर दर्ज करें");
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      toast.error(
+        "कृपया सही ईमेल पता दर्ज करें।"
+      );
       return;
     }
 
-    if (!formData.message.trim()) {
-      toast.error("कृपया अपना संदेश लिखें");
+    // ------------------------------------------
+    // PHONE VALIDATION
+    // ------------------------------------------
+
+    if (!/^[0-9]{10}$/.test(phone)) {
+      toast.error(
+        "कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें।"
+      );
       return;
     }
 
-    toast.success("🎉 आपका संदेश सफलतापूर्वक भेज दिया गया।");
+    // ------------------------------------------
+    // MESSAGE VALIDATION
+    // ------------------------------------------
 
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      message: "",
-    });
+    if (!message) {
+      toast.error(
+        "कृपया अपना संदेश लिखें।"
+      );
+      return;
+    }
+
+    // ------------------------------------------
+    // START LOADING
+    // ------------------------------------------
+
+    setIsSubmitting(true);
+
+    try {
+      // ----------------------------------------
+      // SAVE TO FIRESTORE
+      // ----------------------------------------
+
+      const result = await addContactMessage({
+        name,
+        email,
+        phone,
+        message,
+      });
+
+      // ----------------------------------------
+      // FIRESTORE FAILED
+      // ----------------------------------------
+
+      if (!result.success) {
+        console.error(
+          "Contact submission failed:",
+          result.error
+        );
+
+        toast.error(
+          "संदेश भेजने में समस्या हुई। कृपया दोबारा प्रयास करें।"
+        );
+
+        return;
+      }
+
+      // ----------------------------------------
+      // SUCCESS
+      // ----------------------------------------
+
+      toast.success(
+        "🎉 आपका संदेश सफलतापूर्वक भेज दिया गया।"
+      );
+
+      // ----------------------------------------
+      // RESET FORM
+      // ----------------------------------------
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error(
+        "Contact form error:",
+        error
+      );
+
+      toast.error(
+        "संदेश भेजने में समस्या हुई। कृपया दोबारा प्रयास करें।"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,6 +184,10 @@ function Contact() {
       className="py-24 bg-gradient-to-b from-green-50 to-white"
     >
       <div className="max-w-7xl mx-auto px-5">
+
+        {/* ======================================
+            HEADER
+        ====================================== */}
 
         <div className="text-center mb-16">
 
@@ -77,68 +200,116 @@ function Contact() {
           </h2>
 
           <p className="text-gray-600 mt-5 max-w-2xl mx-auto">
-            किसी भी प्रकार की जानकारी, सहयोग या स्वयंसेवक बनने के लिए
-            हमसे संपर्क करें।
+            किसी भी प्रकार की जानकारी, सहयोग या
+            स्वयंसेवक बनने के लिए हमसे संपर्क करें।
           </p>
 
         </div>
 
+        {/* ======================================
+            MAIN GRID
+        ====================================== */}
+
         <div className="grid lg:grid-cols-2 gap-10">
 
-          {/* Left Side */}
+          {/* ====================================
+              LEFT SIDE
+          ==================================== */}
 
           <div className="space-y-6">
+
+            {/* PHONE */}
 
             <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
               <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-                <FaPhoneAlt className="text-green-700 text-xl"/>
+
+                <FaPhoneAlt
+                  className="text-green-700 text-xl"
+                />
+
               </div>
 
               <div>
-                <h3 className="font-bold text-lg">फ़ोन</h3>
-                <p className="text-gray-600">+91 9238022531</p>
+
+                <h3 className="font-bold text-lg">
+                  फ़ोन
+                </h3>
+
+                <p className="text-gray-600">
+                  +91 9238022531
+                </p>
+
               </div>
 
             </div>
+
+            {/* EMAIL */}
 
             <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
               <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center">
-                <FaEnvelope className="text-orange-500 text-xl"/>
+
+                <FaEnvelope
+                  className="text-orange-500 text-xl"
+                />
+
               </div>
 
               <div>
-                <h3 className="font-bold text-lg">ईमेल</h3>
+
+                <h3 className="font-bold text-lg">
+                  ईमेल
+                </h3>
+
                 <p className="text-gray-600">
                   info@yuvasarathi.org
                 </p>
+
               </div>
 
             </div>
+
+            {/* ADDRESS */}
 
             <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
               <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-                <FaMapMarkerAlt className="text-red-500 text-xl"/>
+
+                <FaMapMarkerAlt
+                  className="text-red-500 text-xl"
+                />
+
               </div>
 
               <div>
-                <h3 className="font-bold text-lg">पता</h3>
+
+                <h3 className="font-bold text-lg">
+                  पता
+                </h3>
+
                 <p className="text-gray-600">
                   कवर्धा, छत्तीसगढ़
                 </p>
+
               </div>
 
             </div>
 
+            {/* OFFICE TIME */}
+
             <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
               <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-                <FaClock className="text-blue-600 text-xl"/>
+
+                <FaClock
+                  className="text-blue-600 text-xl"
+                />
+
               </div>
 
               <div>
+
                 <h3 className="font-bold text-lg">
                   कार्यालय समय
                 </h3>
@@ -155,25 +326,38 @@ function Contact() {
 
             </div>
 
+            {/* SOCIAL */}
+
             <div className="flex gap-4">
 
-              <a href="#" className="w-12 h-12 rounded-full bg-blue-600 text-white flex justify-center items-center">
-                <FaFacebookF/>
+              <a
+                href="#"
+                className="w-12 h-12 rounded-full bg-blue-600 text-white flex justify-center items-center"
+              >
+                <FaFacebookF />
               </a>
 
-              <a href="#" className="w-12 h-12 rounded-full bg-pink-500 text-white flex justify-center items-center">
-                <FaInstagram/>
+              <a
+                href="#"
+                className="w-12 h-12 rounded-full bg-pink-500 text-white flex justify-center items-center"
+              >
+                <FaInstagram />
               </a>
 
-              <a href="#" className="w-12 h-12 rounded-full bg-sky-600 text-white flex justify-center items-center">
-                <FaLinkedinIn/>
+              <a
+                href="#"
+                className="w-12 h-12 rounded-full bg-sky-600 text-white flex justify-center items-center"
+              >
+                <FaLinkedinIn />
               </a>
 
             </div>
 
           </div>
 
-          {/* Right Side */}
+          {/* ====================================
+              RIGHT SIDE
+          ==================================== */}
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
 
@@ -181,78 +365,127 @@ function Contact() {
               हमें संदेश भेजें
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
 
-              <input
-                type="text"
-                name="name"
-                placeholder="आपका नाम"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full border rounded-xl p-4 outline-none focus:border-green-600"
-              />
+              {/* NAME */}
 
-              <input
-                type="email"
-                name="email"
-                placeholder="ईमेल"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full border rounded-xl p-4 outline-none focus:border-green-600"
-              />
+              <div>
 
-              <input
-                type="tel"
-                name="phone"
-                placeholder="मोबाइल नंबर"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full border rounded-xl p-4 outline-none focus:border-green-600"
-              />
+                <label className="block mb-2 font-semibold text-gray-700">
+                  नाम
+                </label>
 
-              <textarea
-                rows="5"
-                name="message"
-                placeholder="अपना संदेश लिखें..."
-                value={formData.message}
-                onChange={handleChange}
-                className="w-full border rounded-xl p-4 resize-none outline-none focus:border-green-600"
-              ></textarea>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="आपका नाम"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full border rounded-xl p-4 outline-none focus:border-green-600 disabled:bg-gray-100"
+                />
+
+              </div>
+
+              {/* EMAIL */}
+
+              <div>
+
+                <label className="block mb-2 font-semibold text-gray-700">
+                  ईमेल
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="आपका ईमेल"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full border rounded-xl p-4 outline-none focus:border-green-600 disabled:bg-gray-100"
+                />
+
+              </div>
+
+              {/* PHONE */}
+
+              <div>
+
+                <label className="block mb-2 font-semibold text-gray-700">
+                  मोबाइल नंबर
+                </label>
+
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="10 अंकों का मोबाइल नंबर"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  maxLength={10}
+                  inputMode="numeric"
+                  disabled={isSubmitting}
+                  className="w-full border rounded-xl p-4 outline-none focus:border-green-600 disabled:bg-gray-100"
+                />
+
+              </div>
+
+              {/* MESSAGE */}
+
+              <div>
+
+                <label className="block mb-2 font-semibold text-gray-700">
+                  संदेश
+                </label>
+
+                <textarea
+                  rows="5"
+                  name="message"
+                  placeholder="अपना संदेश लिखें..."
+                  value={formData.message}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  className="w-full border rounded-xl p-4 resize-none outline-none focus:border-green-600 disabled:bg-gray-100"
+                />
+
+              </div>
+
+              {/* SUBMIT */}
 
               <button
                 type="submit"
-                className="w-full bg-green-700 hover:bg-green-800 text-white py-4 rounded-xl font-semibold transition"
+                disabled={isSubmitting}
+                className="
+                  w-full
+                  bg-green-700
+                  hover:bg-green-800
+                  disabled:bg-green-400
+                  disabled:cursor-not-allowed
+                  text-white
+                  py-4
+                  rounded-xl
+                  font-semibold
+                  transition
+                "
               >
-                📩 संदेश भेजें
+
+                {isSubmitting
+                  ? "⏳ संदेश भेजा जा रहा है..."
+                  : "📩 संदेश भेजें"}
+
               </button>
 
             </form>
-                      </div>
-
-        </div>
-
-        {/* Google Map */}
-
-        {/* <div className="mt-12">
-
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-
-            <iframe
-              title="Google Map"
-              src="https://www.google.com/maps?q=Kabirdham,Chhattisgarh&output=embed"
-              className="w-full h-[450px]"
-              loading="lazy"
-            ></iframe>
 
           </div>
 
-        </div> */}
+        </div>
 
       </div>
-
     </section>
   );
-
 }
 
 export default Contact;

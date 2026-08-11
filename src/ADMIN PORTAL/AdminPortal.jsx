@@ -1,14 +1,13 @@
 import { useState } from "react";
 
 import Management from "./components/Management.jsx";
-
-import logo from "../assets/logo.png";
-
 import AdminNavbar from "./components/AdminNavbar.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Membership from "./components/Membership.jsx";
 import Events from "./components/Events.jsx";
 import Gallery from "./components/Gallery.jsx";
+
+import logo from "../assets/logo.png";
 
 import "./admin.css";
 
@@ -17,7 +16,7 @@ function AdminPortal({ user, onLogout }) {
     useState("dashboard");
 
   // ==========================================
-  // AGAR ADMIN USER NAHI MILA
+  // ADMIN SESSION CHECK
   // ==========================================
 
   if (!user) {
@@ -28,22 +27,33 @@ function AdminPortal({ user, onLogout }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background: "#f8fafc",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ textAlign: "center" }}>
-          <h2>
-            Admin session नहीं मिली
-          </h2>
+        <div
+          style={{
+            textAlign: "center",
+            background: "#ffffff",
+            padding: "40px",
+            borderRadius: "20px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
+          }}
+        >
+          <h2>Admin session नहीं मिली</h2>
 
           <button
+            type="button"
             onClick={onLogout}
             style={{
-              padding: "10px 20px",
+              padding: "12px 24px",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "10px",
               cursor: "pointer",
               marginTop: "15px",
+              background: "#15803d",
+              color: "#ffffff",
+              fontWeight: "600",
             }}
           >
             वापस लॉगिन करें
@@ -52,6 +62,20 @@ function AdminPortal({ user, onLogout }) {
       </div>
     );
   }
+
+  // ==========================================
+  // SECTION CHANGE
+  // ==========================================
+
+  const handleSectionChange = (section) => {
+    console.log("Admin section:", section);
+
+    setActiveSection(section);
+  };
+
+  // ==========================================
+  // MAIN ADMIN PORTAL
+  // ==========================================
 
   return (
     <div className="admin-portal">
@@ -62,31 +86,58 @@ function AdminPortal({ user, onLogout }) {
 
       <AdminNavbar
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
+        setActiveSection={handleSectionChange}
         onLogout={onLogout}
       />
 
+      {/* ======================================
+          SMALL ADMIN BRAND
+      ====================================== */}
 
+      <div
+        className="admin-brand-strip"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "10px 24px",
+          background: "#ffffff",
+          borderBottom: "1px solid #e5e7eb",
+        }}
+      >
+        <img
+          src={logo}
+          alt="युवा सारथी सेवा संस्था"
+          style={{
+            width: "42px",
+            height: "42px",
+            objectFit: "contain",
+          }}
+        />
 
-<div className="flex items-center gap-2">
-  <img
-    src={logo}
-    alt="युवा सारथी सेवा संस्था"
-    className="h-10 w-10 object-contain shrink-0"
-  />
-
-  <span className="font-bold text-green-800">
-    युवा सारथी
-  </span>
-</div>
-
-
+        <span
+          style={{
+            fontWeight: "700",
+            color: "#166534",
+            fontSize: "18px",
+          }}
+        >
+          युवा सारथी
+        </span>
+      </div>
 
       {/* ======================================
           MAIN CONTENT
       ====================================== */}
 
-      <main className="admin-content">
+      <main
+        className="admin-content"
+        style={{
+          display: "block",
+          width: "100%",
+          minHeight: "calc(100vh - 160px)",
+        }}
+      >
 
         {/* ====================================
             DASHBOARD
@@ -94,14 +145,19 @@ function AdminPortal({ user, onLogout }) {
 
         {activeSection === "dashboard" && (
           <Dashboard
-            setActiveSection={setActiveSection}
+            setActiveSection={handleSectionChange}
           />
         )}
 
-        {activeSection === "management" && (
-  <Management />
-)}
+        {/* ====================================
+            MANAGEMENT
+        ==================================== */}
 
+        {activeSection === "management" && (
+          <Management
+            setActiveSection={handleSectionChange}
+          />
+        )}
 
         {/* ====================================
             MEMBERSHIP
@@ -113,7 +169,6 @@ function AdminPortal({ user, onLogout }) {
           />
         )}
 
-
         {/* ====================================
             EVENTS
         ==================================== */}
@@ -121,7 +176,6 @@ function AdminPortal({ user, onLogout }) {
         {activeSection === "events" && (
           <Events />
         )}
-
 
         {/* ====================================
             GALLERY
@@ -131,8 +185,23 @@ function AdminPortal({ user, onLogout }) {
           <Gallery />
         )}
 
-      </main>
+        {/* ====================================
+            FALLBACK
+        ==================================== */}
 
+        {![
+          "dashboard",
+          "management",
+          "membership",
+          "events",
+          "gallery",
+        ].includes(activeSection) && (
+          <Dashboard
+            setActiveSection={handleSectionChange}
+          />
+        )}
+
+      </main>
     </div>
   );
 }

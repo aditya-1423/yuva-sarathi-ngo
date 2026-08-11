@@ -280,7 +280,7 @@ const Navbar = () => {
                 fill="currentColor"
               />
 
-              सहयोग करें
+              सहयोग करें / DONATE
 
             </button>
 
@@ -534,7 +534,7 @@ const Navbar = () => {
                 fill="currentColor"
               />
 
-              सहयोग करें
+              सहयोग करें / DONATE
 
             </button>
 

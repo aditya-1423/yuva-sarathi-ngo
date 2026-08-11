@@ -9,7 +9,6 @@ import {
 
 import { QRCodeSVG } from "qrcode.react";
 
-
 // ==========================================
 // DONATION CONFIG
 // ==========================================
@@ -20,9 +19,9 @@ const NGO_NAME = "Yuva Sarathi Seva Sanstha";
 
 const WHATSAPP_NUMBER = "919238022531";
 
+const MIN_DONATION = 20;
 
 function Donate() {
-
   // ========================================
   // FORM STATE
   // ========================================
@@ -33,78 +32,56 @@ function Donate() {
     amount: "",
   });
 
-
   // ========================================
   // PAYMENT STATE
   // ========================================
 
   const [paymentData, setPaymentData] = useState(null);
 
-
   // ========================================
   // INPUT CHANGE
   // ========================================
 
   const handleChange = (e) => {
-
     const { name, value } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-
   };
-
 
   // ========================================
   // FORM SUBMIT
   // ========================================
 
   const handleSubmit = (e) => {
-
     e.preventDefault();
 
-
     const name = formData.name.trim();
-
     const phone = formData.phone.trim();
-
     const amount = Number(formData.amount);
 
-
     // NAME VALIDATION
-
     if (!name) {
-
       alert("कृपया अपना नाम दर्ज करें।");
-
       return;
     }
-
 
     // MOBILE VALIDATION
-
     if (!/^[0-9]{10}$/.test(phone)) {
-
       alert("कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें।");
-
       return;
     }
-
 
     // AMOUNT VALIDATION
-
-    if (!amount || amount <= 0) {
-
-      alert("कृपया सही donation amount दर्ज करें।");
-
+    if (!amount || amount < MIN_DONATION) {
+      alert(`Minimum donation amount ₹${MIN_DONATION} है।`);
       return;
     }
 
-
     // ======================================
-    // UPI PAYMENT LINK
+    // UPI QR DATA
     // ======================================
 
     const upiUrl =
@@ -116,43 +93,31 @@ function Donate() {
         `Donation by ${name}`
       )}`;
 
-
     // ======================================
     // PAYMENT DATA
     // ======================================
 
     setPaymentData({
-
       name,
-
       phone,
-
       amount,
-
       upiUrl,
-
     });
-
   };
-
 
   // ========================================
   // BACK TO FORM
   // ========================================
 
   const goBack = () => {
-
     setPaymentData(null);
-
   };
-
 
   // ========================================
   // NEW DONATION
   // ========================================
 
   const resetForm = () => {
-
     setFormData({
       name: "",
       phone: "",
@@ -160,9 +125,7 @@ function Donate() {
     });
 
     setPaymentData(null);
-
   };
-
 
   // ========================================
   // WHATSAPP MESSAGE
@@ -177,16 +140,13 @@ function Donate() {
 Payment का screenshot भेज रहा/रही हूँ।`
     : "";
 
-
   const whatsappUrl = paymentData
     ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
         whatsappMessage
       )}`
     : "#";
 
-
   return (
-
     <section
       id="donate"
       className="
@@ -199,7 +159,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
         py-24
       "
     >
-
 
       {/* ======================================
           BACKGROUND DECORATION
@@ -231,7 +190,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
         "
       />
 
-
       {/* ======================================
           MAIN CONTAINER
       ====================================== */}
@@ -256,15 +214,11 @@ Payment का screenshot भेज रहा/रही हूँ।`
           "
         >
 
-
           {/* ==================================
               LEFT SIDE
           ================================== */}
 
           <div className="text-white">
-
-
-            {/* HEART ICON */}
 
             <div
               className="
@@ -282,9 +236,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
               <FaHeart />
             </div>
 
-
-            {/* HEADING */}
-
             <h2
               className="
                 mt-6
@@ -294,17 +245,10 @@ Payment का screenshot भेज रहा/रही हूँ।`
                 md:text-5xl
               "
             >
-
               आपका सहयोग
-
               <br />
-
               किसी की जिंदगी बदल सकता है
-
             </h2>
-
-
-            {/* DESCRIPTION */}
 
             <p
               className="
@@ -314,15 +258,10 @@ Payment का screenshot भेज रहा/रही हूँ।`
                 text-green-100
               "
             >
-
               आपका छोटा सा योगदान शिक्षा, स्वास्थ्य,
               पर्यावरण और समाज सेवा के कार्यों को आगे
               बढ़ाने में मदद करेगा।
-
             </p>
-
-
-            {/* MOTTO */}
 
             <div
               className="
@@ -345,22 +284,16 @@ Payment का screenshot भेज रहा/रही हूँ।`
                   text-2xl
                 "
               >
-
                 <FaHandHoldingHeart />
-
               </div>
 
-
               <p className="font-semibold text-white">
-
                 #स्वार्थी नहीं सारथी बनो#
-
               </p>
 
             </div>
 
           </div>
-
 
           {/* ==================================
               RIGHT CARD
@@ -376,7 +309,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
             "
           >
 
-
             {/* =================================
                 PAYMENT PAGE
             ================================= */}
@@ -384,7 +316,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
             {paymentData ? (
 
               <div className="text-center">
-
 
                 {/* BACK BUTTON */}
 
@@ -402,13 +333,9 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     hover:text-orange-600
                   "
                 >
-
                   <FaArrowLeft />
-
                   वापस जाएं
-
                 </button>
-
 
                 {/* PAYMENT TITLE */}
 
@@ -419,11 +346,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-green-800
                   "
                 >
-
                   Donation Payment
-
                 </h3>
-
 
                 <p
                   className="
@@ -431,11 +355,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-gray-500
                   "
                 >
-
                   धन्यवाद, {paymentData.name}
-
                 </p>
-
 
                 {/* AMOUNT */}
 
@@ -447,11 +368,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-orange-600
                   "
                 >
-
                   ₹{paymentData.amount}
-
                 </div>
-
 
                 {/* =================================
                     QR CODE
@@ -471,16 +389,13 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     shadow-md
                   "
                 >
-
                   <QRCodeSVG
                     value={paymentData.upiUrl}
                     size={220}
                     level="H"
                     includeMargin
                   />
-
                 </div>
-
 
                 <p
                   className="
@@ -489,77 +404,11 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-gray-600
                   "
                 >
-
                   QR Code scan करके payment करें
-
                 </p>
 
-
                 {/* =================================
-                    OR
-                ================================= */}
-
-                <div
-                  className="
-                    my-5
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    font-semibold
-                    text-gray-400
-                  "
-                >
-
-                  <span
-                    className="
-                      h-px
-                      flex-1
-                      bg-gray-200
-                    "
-                  />
-
-                  <span>OR</span>
-
-                  <span
-                    className="
-                      h-px
-                      flex-1
-                      bg-gray-200
-                    "
-                  />
-
-                </div>
-
-
-                {/* =================================
-                    PAY THROUGH UPI
-                ================================= */}
-
-                <a
-                  href={paymentData.upiUrl}
-                  className="
-                    block
-                    w-full
-                    rounded-xl
-                    bg-orange-500
-                    py-4
-                    text-lg
-                    font-bold
-                    text-white
-                    shadow-lg
-                    transition
-                    hover:bg-orange-600
-                  "
-                >
-
-                  💳 UPI APP से पेमेंट करें
-
-                </a>
-
-
-                {/* =================================
-                    WHATSAPP INFORMATION
+                    PAYMENT INFORMATION
                 ================================= */}
 
                 <div
@@ -567,8 +416,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     mt-6
                     rounded-2xl
                     border
-                    border-green-200
-                    bg-green-50
+                    border-orange-200
+                    bg-orange-50
                     p-5
                   "
                 >
@@ -576,15 +425,12 @@ Payment का screenshot भेज रहा/रही हूँ।`
                   <p
                     className="
                       text-center
-                      font-semibold
-                      text-green-800
+                      font-bold
+                      text-orange-700
                     "
                   >
-
-                    ✅ Payment करने के बाद
-
+                    ⚠️ महत्वपूर्ण सूचना
                   </p>
-
 
                   <p
                     className="
@@ -595,43 +441,54 @@ Payment का screenshot भेज रहा/रही हूँ।`
                       text-gray-600
                     "
                   >
-
-                    अपना नाम और payment का screenshot
-                    WhatsApp पर भेजें।
-
+                    ऊपर दिए गए QR Code को scan करके
+                    <strong> ₹{paymentData.amount} </strong>
+                    का payment करें।
                   </p>
 
-
-                  {/* WHATSAPP BUTTON */}
-
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <p
                     className="
-                      mt-4
-                      flex
-                      w-full
-                      items-center
-                      justify-center
-                      gap-2
-                      rounded-xl
-                      bg-green-600
-                      py-4
-                      font-bold
-                      text-white
-                      shadow-md
-                      transition
-                      hover:bg-green-700
+                      mt-2
+                      text-center
+                      text-sm
+                      leading-6
+                      text-gray-600
                     "
                   >
-
-                    📱 WhatsApp पर Screenshot भेजें
-
-                  </a>
+                    Payment करने के बाद अपना नाम और
+                    payment का screenshot WhatsApp पर
+                    भेजना आवश्यक है।
+                  </p>
 
                 </div>
 
+                {/* =================================
+                    WHATSAPP BUTTON
+                ================================= */}
+
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="
+                    mt-5
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    bg-green-600
+                    py-4
+                    font-bold
+                    text-white
+                    shadow-md
+                    transition
+                    hover:bg-green-700
+                  "
+                >
+                  📱 WhatsApp पर Screenshot भेजें
+                </a>
 
                 {/* UPI ID */}
 
@@ -644,17 +501,9 @@ Payment का screenshot भेज रहा/रही हूँ।`
                   "
                 >
 
-                  <p
-                    className="
-                      text-sm
-                      text-gray-500
-                    "
-                  >
-
+                  <p className="text-sm text-gray-500">
                     UPI ID
-
                   </p>
-
 
                   <p
                     className="
@@ -663,13 +512,10 @@ Payment का screenshot भेज रहा/रही हूँ।`
                       text-green-700
                     "
                   >
-
                     {UPI_ID}
-
                   </p>
 
                 </div>
-
 
                 {/* NEW DONATION */}
 
@@ -685,22 +531,18 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     hover:text-orange-600
                   "
                 >
-
                   नई Donation करें
-
                 </button>
 
               </div>
 
             ) : (
 
-
               /* =================================
                  DONATION FORM
               ================================= */
 
               <div>
-
 
                 {/* FORM TITLE */}
 
@@ -712,11 +554,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-green-800
                   "
                 >
-
                   सहयोग करें
-
                 </h3>
-
 
                 <p
                   className="
@@ -725,11 +564,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                     text-gray-500
                   "
                 >
-
                   Donation करने के लिए अपनी जानकारी भरें
-
                 </p>
-
 
                 {/* =================================
                     FORM
@@ -739,7 +575,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
                   onSubmit={handleSubmit}
                   className="mt-7 space-y-5"
                 >
-
 
                   {/* NAME */}
 
@@ -754,11 +589,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         text-gray-700
                       "
                     >
-
                       नाम
-
                     </label>
-
 
                     <input
                       id="donation-name"
@@ -785,7 +617,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
 
                   </div>
 
-
                   {/* MOBILE */}
 
                   <div>
@@ -799,11 +630,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         text-gray-700
                       "
                     >
-
                       मोबाइल नंबर
-
                     </label>
-
 
                     <input
                       id="donation-phone"
@@ -832,7 +660,6 @@ Payment का screenshot भेज रहा/रही हूँ।`
 
                   </div>
 
-
                   {/* AMOUNT */}
 
                   <div>
@@ -846,11 +673,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         text-gray-700
                       "
                     >
-
-                       दान की राशि
-
+                      दान की राशि
                     </label>
-
 
                     <div className="relative">
 
@@ -864,17 +688,16 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         "
                       />
 
-
                       <input
                         id="donation-amount"
                         type="number"
                         name="amount"
                         value={formData.amount}
                         onChange={handleChange}
-                        min="1"
+                        min={MIN_DONATION}
                         step="1"
                         inputMode="numeric"
-                        placeholder="Amount डालें"
+                        placeholder={`Minimum ₹${MIN_DONATION}`}
                         className="
                           w-full
                           rounded-xl
@@ -893,11 +716,20 @@ Payment का screenshot भेज रहा/रही हूँ।`
 
                     </div>
 
+                    <p
+                      className="
+                        mt-2
+                        text-xs
+                        text-gray-500
+                      "
+                    >
+                      Minimum donation: ₹{MIN_DONATION}
+                    </p>
+
                   </div>
 
-
                   {/* =================================
-                      WARNING ON FORM PAGE
+                      WARNING
                   ================================= */}
 
                   <div
@@ -918,11 +750,8 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         text-orange-700
                       "
                     >
-
                       ⚠️ महत्वपूर्ण सूचना
-
                     </p>
-
 
                     <p
                       className="
@@ -933,15 +762,12 @@ Payment का screenshot भेज रहा/रही हूँ।`
                         text-gray-600
                       "
                     >
-
                       Payment करने के बाद अपना नाम और
                       payment का screenshot WhatsApp पर
                       भेजना आवश्यक है।
-
                     </p>
 
                   </div>
-
 
                   {/* =================================
                       CONTINUE BUTTON
@@ -963,13 +789,10 @@ Payment का screenshot भेज रहा/रही हूँ।`
                       hover:bg-orange-600
                     "
                   >
-
                     ❤️ भुगतान करें
-
                   </button>
 
                 </form>
-
 
                 {/* UPI INFORMATION */}
 
@@ -989,12 +812,9 @@ Payment का screenshot भेज रहा/रही हूँ।`
                       text-gray-600
                     "
                   >
-
                     आपकी donation संस्था के सेवा
                     कार्यों में उपयोग की जाएगी।
-
                   </p>
-
 
                   <p
                     className="
@@ -1004,9 +824,7 @@ Payment का screenshot भेज रहा/रही हूँ।`
                       text-green-700
                     "
                   >
-
                     UPI: {UPI_ID}
-
                   </p>
 
                 </div>
@@ -1022,9 +840,7 @@ Payment का screenshot भेज रहा/रही हूँ।`
       </div>
 
     </section>
-
   );
 }
-
 
 export default Donate;
