@@ -7,6 +7,7 @@ import {
 import nokeshImage from "../assets/images/nokesh.jpeg";
 import gajendraImage from "../assets/logo.png";
 import teamImage from "../assets/logo.png";
+import teamImage1 from "../assets/ramavtar.jpg";
 
 function Team() {
   const members = [
@@ -28,9 +29,9 @@ function Team() {
 
     {
       id: 3,
-      name: "टीम सदस्य",
+      name: "रामअवतार वर्मा ",
       role: "मुख्य स्वयंसेवक",
-      image: teamImage,
+      image: teamImage1,
       color: "from-blue-600 to-blue-800",
     },
 
