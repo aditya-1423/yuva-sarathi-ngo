@@ -20,63 +20,63 @@ function Gallery() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedImage, setSelectedImage] =
-    useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const [selectedIndex, setSelectedIndex] =
-    useState(0);
+  const [showAll, setShowAll] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
 
-  const [showAll, setShowAll] =
-    useState(false);
-
-  const [slideIndex, setSlideIndex] =
-    useState(0);
+  // =========================================================
+  // FIRST 8 IMAGES FOR SLIDER
+  // =========================================================
 
   const sliderImages = useMemo(
     () => images.slice(0, 8),
     [images]
   );
 
+  // =========================================================
+  // LOAD GALLERY FROM FIREBASE
+  // =========================================================
+
   useEffect(() => {
     let mounted = true;
 
     const loadGallery = async () => {
       try {
-        const galleryRef =
-          collection(db, "gallery");
+        const galleryRef = collection(db, "gallery");
 
         const galleryQuery = query(
           galleryRef,
           orderBy("createdAt", "desc")
         );
 
-        const snapshot =
-          await getDocs(galleryQuery);
+        const snapshot = await getDocs(galleryQuery);
 
-        const galleryImages =
-          snapshot.docs
-            .map((item) => {
-              const data = item.data();
+        const galleryImages = snapshot.docs
+          .map((item) => {
+            const data = item.data();
 
-              return {
-                id: item.id,
-                image:
-                  data.imageUrl ||
-                  data.secureUrl ||
-                  data.image ||
-                  data.photo ||
-                  "",
-                caption:
-                  data.caption ||
-                  data.title ||
-                  "संस्था की गतिविधि",
-                createdAt:
-                  data.createdAt || null,
-              };
-            })
-            .filter(
-              (item) => item.image
-            );
+            return {
+              id: item.id,
+
+              image:
+                data.imageUrl ||
+                data.secureUrl ||
+                data.image ||
+                data.photo ||
+                "",
+
+              caption:
+                data.caption ||
+                data.title ||
+                "संस्था की गतिविधि",
+
+              createdAt:
+                data.createdAt || null,
+            };
+          })
+          .filter((item) => item.image);
 
         if (mounted) {
           setImages(galleryImages);
@@ -104,10 +104,12 @@ function Gallery() {
     };
   }, []);
 
+  // =========================================================
+  // RESPONSIVE VISIBLE COUNT
+  // =========================================================
+
   const getVisibleCount = () => {
-    if (
-      typeof window === "undefined"
-    ) {
+    if (typeof window === "undefined") {
       return 1;
     }
 
@@ -122,18 +124,36 @@ function Gallery() {
     return 1;
   };
 
-  const visibleCount =
-    getVisibleCount();
+  const visibleCount = getVisibleCount();
+
+  // =========================================================
+  // MAX SLIDER INDEX
+  // =========================================================
 
   const realMaxIndex = Math.max(
     0,
-    sliderImages.length -
-      visibleCount
+    sliderImages.length - visibleCount
   );
+
+  // =========================================================
+  // LOOP IMAGES
+  //
+  // IMPORTANT:
+  // Agar images visibleCount se kam/बराबर hain,
+  // clone nahi banega.
+  //
+  // Isse 1 photo upload karne par 2 photo nahi dikhegi.
+  // =========================================================
 
   const loopImages = useMemo(() => {
     if (!sliderImages.length) {
       return [];
+    }
+
+    // No cloning when there aren't enough images
+    // to require an infinite loop.
+    if (sliderImages.length <= visibleCount) {
+      return sliderImages;
     }
 
     const cloneCount = Math.min(
@@ -143,20 +163,21 @@ function Gallery() {
 
     return [
       ...sliderImages,
-      ...sliderImages.slice(
-        0,
-        cloneCount
-      ),
+      ...sliderImages.slice(0, cloneCount),
     ];
   }, [
     sliderImages,
     visibleCount,
   ]);
 
+  // =========================================================
+  // AUTO SLIDER
+  // =========================================================
+
   useEffect(() => {
     if (
       showAll ||
-      sliderImages.length <= 1
+      sliderImages.length <= visibleCount
     ) {
       return;
     }
@@ -167,14 +188,26 @@ function Gallery() {
       );
     }, 4000);
 
-    return () =>
+    return () => {
       clearInterval(timer);
+    };
   }, [
     showAll,
     sliderImages.length,
+    visibleCount,
   ]);
 
+  // =========================================================
+  // RESET AFTER CLONED SLIDES
+  // =========================================================
+
   useEffect(() => {
+    if (
+      sliderImages.length <= visibleCount
+    ) {
+      return;
+    }
+
     if (
       slideIndex <
       sliderImages.length
@@ -182,20 +215,27 @@ function Gallery() {
       return;
     }
 
-    const timer =
-      window.setTimeout(() => {
-        setSlideIndex(0);
-      }, 750);
+    const timer = window.setTimeout(() => {
+      setSlideIndex(0);
+    }, 750);
 
-    return () =>
+    return () => {
       window.clearTimeout(timer);
+    };
   }, [
     slideIndex,
     sliderImages.length,
+    visibleCount,
   ]);
 
+  // =========================================================
+  // NEXT SLIDE
+  // =========================================================
+
   const nextSlide = () => {
-    if (sliderImages.length <= 1) {
+    if (
+      sliderImages.length <= visibleCount
+    ) {
       return;
     }
 
@@ -204,8 +244,14 @@ function Gallery() {
     );
   };
 
+  // =========================================================
+  // PREVIOUS SLIDE
+  // =========================================================
+
   const previousSlide = () => {
-    if (sliderImages.length <= 1) {
+    if (
+      sliderImages.length <= visibleCount
+    ) {
       return;
     }
 
@@ -220,6 +266,10 @@ function Gallery() {
     );
   };
 
+  // =========================================================
+  // OPEN IMAGE
+  // =========================================================
+
   const openImage = (
     image,
     index
@@ -228,9 +278,17 @@ function Gallery() {
     setSelectedIndex(index);
   };
 
+  // =========================================================
+  // CLOSE IMAGE
+  // =========================================================
+
   const closeImage = () => {
     setSelectedImage(null);
   };
+
+  // =========================================================
+  // PREVIOUS LIGHTBOX IMAGE
+  // =========================================================
 
   const previousImage = () => {
     if (!images.length) {
@@ -252,6 +310,10 @@ function Gallery() {
       }
     );
   };
+
+  // =========================================================
+  // NEXT LIGHTBOX IMAGE
+  // =========================================================
 
   const nextImage = () => {
     if (!images.length) {
@@ -275,40 +337,48 @@ function Gallery() {
     );
   };
 
+  // =========================================================
+  // KEYBOARD CONTROLS
+  // =========================================================
+
   useEffect(() => {
-    const handleKeyDown =
-      (event) => {
-        if (!selectedImage) {
-          return;
-        }
+    const handleKeyDown = (event) => {
+      if (!selectedImage) {
+        return;
+      }
 
-        if (event.key === "Escape") {
-          closeImage();
-        }
+      if (event.key === "Escape") {
+        closeImage();
+      }
 
-        if (event.key === "ArrowLeft") {
-          previousImage();
-        }
+      if (event.key === "ArrowLeft") {
+        previousImage();
+      }
 
-        if (event.key === "ArrowRight") {
-          nextImage();
-        }
-      };
+      if (event.key === "ArrowRight") {
+        nextImage();
+      }
+    };
 
     window.addEventListener(
       "keydown",
       handleKeyDown
     );
 
-    return () =>
+    return () => {
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
+    };
   }, [
     selectedImage,
     images,
   ]);
+
+  // =========================================================
+  // SCROLL TO GALLERY
+  // =========================================================
 
   const scrollToGallery = () => {
     document
@@ -319,6 +389,10 @@ function Gallery() {
       });
   };
 
+  // =========================================================
+  // LOADING
+  // =========================================================
+
   if (loading) {
     return (
       <section
@@ -326,6 +400,7 @@ function Gallery() {
         className="py-24 bg-gradient-to-b from-white via-green-50 to-white"
       >
         <div className="max-w-7xl mx-auto px-5 text-center">
+
           <FaImages className="text-6xl text-green-700 mx-auto" />
 
           <h2 className="text-4xl md:text-5xl font-bold text-green-800 mt-6">
@@ -335,10 +410,15 @@ function Gallery() {
           <p className="text-gray-600 mt-5">
             गैलरी लोड हो रही है...
           </p>
+
         </div>
       </section>
     );
   }
+
+  // =========================================================
+  // MAIN
+  // =========================================================
 
   return (
     <>
@@ -348,7 +428,12 @@ function Gallery() {
       >
         <div className="max-w-7xl mx-auto px-5">
 
+          {/* =================================================
+              HEADER
+          ================================================= */}
+
           <div className="text-center mb-14">
+
             <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center shadow-xl">
               <FaImages className="text-4xl text-green-700" />
             </div>
@@ -363,24 +448,37 @@ function Gallery() {
               एवं अन्य सामाजिक गतिविधियों की
               यादगार झलकियाँ।
             </p>
+
           </div>
+
+          {/* =================================================
+              EMPTY STATE
+          ================================================= */}
 
           {images.length === 0 && (
             <div className="text-center py-12">
+
               <FaImages className="text-5xl text-gray-400 mx-auto" />
 
               <p className="text-gray-500 text-lg mt-5">
                 अभी गैलरी में कोई तस्वीर उपलब्ध नहीं है।
               </p>
+
             </div>
           )}
+
+          {/* =================================================
+              SLIDER
+          ================================================= */}
 
           {sliderImages.length > 0 &&
             !showAll && (
               <>
                 <div className="relative">
 
-                  {sliderImages.length > 1 && (
+                  {/* PREVIOUS BUTTON */}
+
+                  {sliderImages.length > visibleCount && (
                     <button
                       type="button"
                       onClick={previousSlide}
@@ -390,7 +488,10 @@ function Gallery() {
                     </button>
                   )}
 
+                  {/* SLIDER CONTAINER */}
+
                   <div className="overflow-hidden mx-4 md:mx-10">
+
                     <div
                       className="flex will-change-transform"
                       style={{
@@ -400,24 +501,30 @@ function Gallery() {
                             (100 /
                               visibleCount)
                           }%, 0, 0)`,
+
                         transition:
                           "transform 750ms cubic-bezier(0.22,1,0.36,1)",
                       }}
+
                       onTransitionEnd={() => {
                         if (
+                          sliderImages.length >
+                            visibleCount &&
                           slideIndex >=
-                          sliderImages.length
+                            sliderImages.length
                         ) {
                           setSlideIndex(0);
                         }
                       }}
                     >
+
                       {loopImages.map(
                         (item, index) => (
                           <div
                             key={`${item.id}-${index}`}
                             className="shrink-0 w-full sm:w-1/2 lg:w-1/3 px-3"
                           >
+
                             <div
                               onClick={() =>
                                 openImage(
@@ -426,8 +533,10 @@ function Gallery() {
                                     sliderImages.length
                                 )
                               }
+
                               className="group relative overflow-hidden rounded-3xl shadow-xl bg-black cursor-pointer h-72 sm:h-80 lg:h-96"
                             >
+
                               <img
                                 src={item.image}
                                 alt={item.caption}
@@ -438,6 +547,7 @@ function Gallery() {
                                 }
                                 decoding="async"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+
                                 onError={(
                                   event
                                 ) => {
@@ -447,20 +557,30 @@ function Gallery() {
                               />
 
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition flex items-end">
+
                                 <div className="w-full p-5 translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+
                                   <p className="text-white font-semibold text-lg">
                                     {item.caption}
                                   </p>
+
                                 </div>
+
                               </div>
+
                             </div>
+
                           </div>
                         )
                       )}
+
                     </div>
+
                   </div>
 
-                  {sliderImages.length > 1 && (
+                  {/* NEXT BUTTON */}
+
+                  {sliderImages.length > visibleCount && (
                     <button
                       type="button"
                       onClick={nextSlide}
@@ -469,10 +589,16 @@ function Gallery() {
                       <FaChevronRight />
                     </button>
                   )}
+
                 </div>
+
+                {/* =================================================
+                    SLIDER DOTS
+                ================================================= */}
 
                 {sliderImages.length > 1 && (
                   <div className="flex justify-center gap-2 mt-8">
+
                     {sliderImages.map(
                       (_, index) => (
                         <button
@@ -490,10 +616,16 @@ function Gallery() {
                         />
                       )
                     )}
+
                   </div>
                 )}
 
+                {/* =================================================
+                    VIEW ALL BUTTON
+                ================================================= */}
+
                 <div className="flex justify-center mt-12">
+
                   <button
                     type="button"
                     onClick={() => {
@@ -509,14 +641,22 @@ function Gallery() {
                   >
                     📸 View All
                   </button>
+
                 </div>
+
               </>
             )}
+
+          {/* =================================================
+              VIEW ALL GRID
+          ================================================= */}
 
           {showAll &&
             images.length > 0 && (
               <>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+
                   {images.map(
                     (item, index) => (
                       <div
@@ -529,12 +669,14 @@ function Gallery() {
                         }
                         className="group relative overflow-hidden rounded-3xl shadow-xl bg-black cursor-pointer h-72 sm:h-80 lg:h-96"
                       >
+
                         <img
                           src={item.image}
                           alt={item.caption}
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+
                           onError={(event) => {
                             event.currentTarget.style.display =
                               "none";
@@ -542,18 +684,27 @@ function Gallery() {
                         />
 
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition flex items-end">
+
                           <div className="w-full p-5 translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition">
+
                             <p className="text-white font-semibold text-lg">
                               {item.caption}
                             </p>
+
                           </div>
+
                         </div>
+
                       </div>
                     )
                   )}
+
                 </div>
 
+                {/* BACK BUTTON */}
+
                 <div className="flex justify-center mt-12">
+
                   <button
                     type="button"
                     onClick={() => {
@@ -569,25 +720,42 @@ function Gallery() {
                   >
                     🔙 वापस स्लाइडर पर
                   </button>
+
                 </div>
+
               </>
             )}
 
+          {/* =================================================
+              TOTAL IMAGE COUNT
+          ================================================= */}
+
           {images.length > 0 && (
             <div className="text-center mt-10">
+
               <p className="text-gray-500 text-sm">
                 कुल {images.length} तस्वीरें उपलब्ध हैं
               </p>
+
             </div>
           )}
+
         </div>
       </section>
+
+      {/* =====================================================
+          LIGHTBOX
+      ===================================================== */}
 
       {selectedImage && (
         <div
           className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4"
+
           onClick={closeImage}
         >
+
+          {/* CLOSE */}
+
           <button
             type="button"
             onClick={closeImage}
@@ -595,6 +763,8 @@ function Gallery() {
           >
             <FaTimes />
           </button>
+
+          {/* PREVIOUS */}
 
           {images.length > 1 && (
             <button
@@ -609,12 +779,16 @@ function Gallery() {
             </button>
           )}
 
+          {/* IMAGE */}
+
           <div
             className="relative max-w-7xl max-h-[95vh] flex flex-col items-center justify-center"
+
             onClick={(event) =>
               event.stopPropagation()
             }
           >
+
             <img
               src={selectedImage.image}
               alt={selectedImage.caption}
@@ -628,7 +802,10 @@ function Gallery() {
             <p className="text-white/60 text-sm mt-1">
               {selectedIndex + 1} / {images.length}
             </p>
+
           </div>
+
+          {/* NEXT */}
 
           {images.length > 1 && (
             <button
@@ -642,8 +819,10 @@ function Gallery() {
               <FaChevronRight />
             </button>
           )}
+
         </div>
       )}
+
     </>
   );
 }
