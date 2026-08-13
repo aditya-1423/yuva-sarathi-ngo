@@ -9,8 +9,8 @@ import { db } from "../firebase/firebase.js";
 
 import {
   FaUsers,
-  FaMapMarkerAlt,
-  FaHandsHelping,
+  // FaMapMarkerAlt,
+  // FaHandsHelping,
 } from "react-icons/fa";
 
 
@@ -19,8 +19,10 @@ function Hero() {
   const [memberCount, setMemberCount] =
     useState(0);
 
+
   // =====================================================
   // LOAD APPROVED MEMBER COUNT
+  // SAME SOURCE AS ADMIN PORTAL
   // =====================================================
 
   useEffect(() => {
@@ -46,19 +48,23 @@ function Hero() {
               const data =
                 item.data();
 
-              return (
+              const status =
                 String(
-                  data.membershipStatus || ""
-                ).toLowerCase() ===
-                "approved"
-              );
+                  data?.membershipStatus || ""
+                )
+                  .trim()
+                  .toLowerCase();
+
+              return status === "approved";
             }
           ).length;
 
         if (active) {
+
           setMemberCount(
             approvedCount
           );
+
         }
 
       } catch (error) {
@@ -69,7 +75,9 @@ function Hero() {
         );
 
         if (active) {
+
           setMemberCount(0);
+
         }
 
       }
@@ -79,7 +87,9 @@ function Hero() {
     void loadApprovedMemberCount();
 
     return () => {
+
       active = false;
+
     };
 
   }, []);
@@ -184,7 +194,7 @@ function Hero() {
 
 
           {/* =================================================
-              MEMBERS
+              APPROVED MEMBERS
           ================================================= */}
 
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 flex items-center gap-4 hover:-translate-y-2 transition duration-300">
@@ -212,17 +222,21 @@ function Hero() {
 
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 flex items-center gap-4 hover:-translate-y-2 transition duration-300">
 
-            <FaMapMarkerAlt className="text-4xl text-orange-500" />
+            {/* <FaMapMarkerAlt className="text-4xl text-orange-500" /> */}
+            
 
             <div>
 
-              <h3 className="text-3xl font-bold text-gray-800">
-                
+              <h3 className="text-2xl font-bold text-gray-800">
+                 युवा सारथी सेवा संस्था   
               </h3>
 
-              <p className="text-gray-600">
-                जिले
+              <p className="text-gray-600" >
+                <br></br>
+              स्थापना दिवस :- Monday, 15 May 2023
+              
               </p>
+              
 
             </div>
 
@@ -233,7 +247,7 @@ function Hero() {
               SERVICE WORK
           ================================================= */}
 
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 flex items-center gap-4 hover:-translate-y-2 transition duration-300">
+          {/* <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 flex items-center gap-4 hover:-translate-y-2 transition duration-300">
 
             <FaHandsHelping className="text-4xl text-green-700" />
 
@@ -249,7 +263,7 @@ function Hero() {
 
             </div>
 
-          </div>
+          </div> */}
 
 
         </div>

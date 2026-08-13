@@ -13,6 +13,7 @@ import {
 
 import { db } from "./firebase.js";
 
+
 // ============================================
 // COLLECTIONS
 // ============================================
@@ -26,6 +27,7 @@ export const SETTINGS_COLLECTION =
 export const MEMBER_COUNT_DOC =
   "memberCount";
 
+
 // ============================================
 // CREATE MEMBERSHIP APPLICATION
 // ============================================
@@ -33,11 +35,15 @@ export const MEMBER_COUNT_DOC =
 export async function createMembershipApplication(
   applicationData
 ) {
+
   if (!applicationData) {
+
     throw new Error(
       "सदस्यता आवेदन की जानकारी नहीं मिली।"
     );
+
   }
+
 
   const {
     fullName,
@@ -46,102 +52,128 @@ export async function createMembershipApplication(
     district,
     village,
     address,
+    age,
+  gender,
     reason,
     occupation,
   } = applicationData;
 
+
   if (!fullName?.trim()) {
-    throw new Error("कृपया पूरा नाम भरें।");
+
+    throw new Error(
+      "कृपया पूरा नाम भरें।"
+    );
+
   }
 
+
   if (!whatsappNumber?.trim()) {
+
     throw new Error(
       "कृपया WhatsApp नंबर भरें।"
     );
+
   }
 
+
   if (!district?.trim()) {
+
     throw new Error(
       "कृपया जिला भरें।"
     );
+
   }
 
+
   if (!village?.trim()) {
+
     throw new Error(
       "कृपया गांव / शहर का नाम भरें।"
     );
+
   }
 
+
   if (!address?.trim()) {
+
     throw new Error(
       "कृपया पूरा पता भरें।"
     );
+
   }
 
+
   if (!reason?.trim()) {
+
     throw new Error(
       "कृपया संस्था से जुड़ने का उद्देश्य बताएं।"
     );
+
   }
+
 
   // ==========================================
   // WHATSAPP VALIDATION
   // ==========================================
 
   const cleanWhatsapp =
-    whatsappNumber.replace(/\D/g, "");
+    whatsappNumber.replace(
+      /\D/g,
+      ""
+    );
 
-  if (cleanWhatsapp.length !== 10) {
+
+  if (
+    cleanWhatsapp.length !==
+    10
+  ) {
+
     throw new Error(
       "कृपया सही 10 अंकों का WhatsApp नंबर डालें।"
     );
+
   }
+
 
   // ==========================================
   // FIRESTORE DATA
   // ==========================================
 
   const membershipData = {
-    fullName: fullName.trim(),
+  fullName: fullName.trim(),
 
-    whatsappNumber: cleanWhatsapp,
+  whatsappNumber: cleanWhatsapp,
 
-    email:
-      email?.trim() || "",
+  email: email?.trim() || "",
 
-    district:
-      district.trim(),
+  age: age || "",
 
-    village:
-      village.trim(),
+  gender: gender?.trim() || "",
 
-    address:
-      address.trim(),
+  district: district.trim(),
 
-    reason:
-      reason.trim(),
+  village: village.trim(),
 
-    occupation:
-      occupation?.trim() || "",
+  address: address.trim(),
 
-    membershipStatus:
-      "pending",
+  reason: reason.trim(),
 
-    approvedAt:
-      null,
+  occupation: occupation?.trim() || "",
 
-    approvedBy:
-      "",
+  membershipStatus: "pending",
 
-    rejectionReason:
-      "",
+  approvedAt: null,
 
-    createdAt:
-      serverTimestamp(),
+  approvedBy: "",
 
-    updatedAt:
-      serverTimestamp(),
-  };
+  rejectionReason: "",
+
+  createdAt: serverTimestamp(),
+
+  updatedAt: serverTimestamp(),
+};
+
 
   // ==========================================
   // SAVE APPLICATION
@@ -156,17 +188,25 @@ export async function createMembershipApplication(
       membershipData
     );
 
+
   return {
-    id: membershipRef.id,
+
+    id:
+      membershipRef.id,
+
     ...membershipData,
+
   };
+
 }
+
 
 // ============================================
 // GET ALL MEMBERSHIP APPLICATIONS
 // ============================================
 
 export async function getMembershipApplications() {
+
   const membershipQuery =
     query(
       collection(
@@ -179,77 +219,112 @@ export async function getMembershipApplications() {
       )
     );
 
+
   const snapshot =
     await getDocs(
       membershipQuery
     );
 
+
   return snapshot.docs.map(
     (membershipDoc) => ({
-      id: membershipDoc.id,
+
+      id:
+        membershipDoc.id,
+
       ...membershipDoc.data(),
+
     })
   );
+
 }
 
+
 // ============================================
-// GET CURRENT MEMBER COUNT
+// GET MEMBER COUNT
+// ============================================
+// NOTE:
+// Public/Admin count अब इस function पर depend
+// नहीं करता। Actual approved documents count
+// Membership.jsx और Hero.jsx से calculate होता है.
 // ============================================
 
 export async function getMemberCount() {
-  const countRef =
-    doc(
-      db,
-      SETTINGS_COLLECTION,
-      MEMBER_COUNT_DOC
-    );
 
   const snapshot =
-    await getDoc(countRef);
+    await getDocs(
+      collection(
+        db,
+        MEMBERSHIP_COLLECTION
+      )
+    );
 
-  if (!snapshot.exists()) {
-    // पहली बार count नहीं है
-    // तो 0 से शुरू होगा
 
-    await setDoc(countRef, {
-      count: 0,
-      updatedAt:
-        serverTimestamp(),
-    });
+  const approvedCount =
+    snapshot.docs.filter(
+      (membershipDoc) => {
 
-    return 0;
-  }
+        const data =
+          membershipDoc.data();
 
-  return Number(
-    snapshot.data()?.count || 0
-  );
+
+        return (
+          String(
+            data?.membershipStatus ||
+            ""
+          )
+            .trim()
+            .toLowerCase() ===
+          "approved"
+        );
+
+      }
+    ).length;
+
+
+  return approvedCount;
+
 }
+
 
 // ============================================
 // UPDATE MEMBER COUNT
+// ============================================
+// Kept only for compatibility.
+// Main website count does NOT use this.
 // ============================================
 
 export async function updateMemberCount(
   newCount
 ) {
+
   const numericCount =
     Number(newCount);
+
 
   if (
     !Number.isFinite(
       numericCount
     )
   ) {
+
     throw new Error(
       "Member count सही नहीं है।"
     );
+
   }
 
-  if (numericCount < 0) {
+
+  if (
+    numericCount < 0
+  ) {
+
     throw new Error(
       "Member count 0 से कम नहीं हो सकता।"
     );
+
   }
+
 
   const countRef =
     doc(
@@ -258,9 +333,11 @@ export async function updateMemberCount(
       MEMBER_COUNT_DOC
     );
 
+
   await setDoc(
     countRef,
     {
+
       count:
         Math.floor(
           numericCount
@@ -268,60 +345,84 @@ export async function updateMemberCount(
 
       updatedAt:
         serverTimestamp(),
+
     },
     {
       merge: true,
     }
   );
 
+
   return Math.floor(
     numericCount
   );
+
 }
+
 
 // ============================================
 // INCREASE MEMBER COUNT
+// ============================================
+// Kept only for old code compatibility.
+// Do NOT use this for membership approval.
 // ============================================
 
 export async function increaseMemberCount(
   amount = 1
 ) {
+
   const currentCount =
     await getMemberCount();
+
 
   const newCount =
     currentCount +
     Number(amount);
 
+
   return await updateMemberCount(
     newCount
   );
+
 }
+
 
 // ============================================
 // DECREASE MEMBER COUNT
+// ============================================
+// Kept only for old code compatibility.
 // ============================================
 
 export async function decreaseMemberCount(
   amount = 1
 ) {
+
   const currentCount =
     await getMemberCount();
+
 
   const newCount =
     currentCount -
     Number(amount);
 
-  if (newCount < 0) {
+
+  if (
+    newCount < 0
+  ) {
+
     throw new Error(
       "Member count 0 से कम नहीं हो सकता।"
     );
+
   }
+
 
   return await updateMemberCount(
     newCount
   );
+
 }
+
 
 // ============================================
 // APPROVE MEMBERSHIP
@@ -331,11 +432,15 @@ export async function approveMembership(
   membershipId,
   adminEmail = ""
 ) {
+
   if (!membershipId) {
+
     throw new Error(
       "Membership ID नहीं मिला।"
     );
+
   }
+
 
   const membershipRef =
     doc(
@@ -344,32 +449,46 @@ export async function approveMembership(
       membershipId
     );
 
+
   const membershipSnapshot =
     await getDoc(
       membershipRef
     );
 
+
   if (
     !membershipSnapshot.exists()
   ) {
+
     throw new Error(
       "सदस्यता आवेदन नहीं मिला।"
     );
+
   }
+
 
   const membershipData =
     membershipSnapshot.data();
+
 
   // ==========================================
   // ALREADY APPROVED CHECK
   // ==========================================
 
   if (
-    membershipData.membershipStatus ===
+    String(
+      membershipData.membershipStatus ||
+      ""
+    )
+      .trim()
+      .toLowerCase() ===
     "approved"
   ) {
+
     return true;
+
   }
+
 
   // ==========================================
   // APPROVE
@@ -378,6 +497,7 @@ export async function approveMembership(
   await updateDoc(
     membershipRef,
     {
+
       membershipStatus:
         "approved",
 
@@ -392,17 +512,29 @@ export async function approveMembership(
 
       updatedAt:
         serverTimestamp(),
+
     }
   );
 
-  // ==========================================
-  // MEMBER COUNT +1
-  // ==========================================
 
-  await increaseMemberCount(1);
+  // ==================================================
+  // IMPORTANT
+  // ==================================================
+  //
+  // यहाँ memberCount +1 नहीं किया जाएगा.
+  //
+  // Approved count हमेशा memberships collection
+  // के actual approved documents से calculate होगा.
+  //
+  // इससे deleted member दोबारा count नहीं होगा.
+  //
+  // ==================================================
+
 
   return true;
+
 }
+
 
 // ============================================
 // REJECT MEMBERSHIP
@@ -413,11 +545,15 @@ export async function rejectMembership(
   rejectionReason = "",
   adminEmail = ""
 ) {
+
   if (!membershipId) {
+
     throw new Error(
       "Membership ID नहीं मिला।"
     );
+
   }
+
 
   const membershipRef =
     doc(
@@ -426,22 +562,28 @@ export async function rejectMembership(
       membershipId
     );
 
+
   const membershipSnapshot =
     await getDoc(
       membershipRef
     );
 
+
   if (
     !membershipSnapshot.exists()
   ) {
+
     throw new Error(
       "सदस्यता आवेदन नहीं मिला।"
     );
+
   }
+
 
   await updateDoc(
     membershipRef,
     {
+
       membershipStatus:
         "rejected",
 
@@ -457,8 +599,11 @@ export async function rejectMembership(
 
       updatedAt:
         serverTimestamp(),
+
     }
   );
 
+
   return true;
+
 }

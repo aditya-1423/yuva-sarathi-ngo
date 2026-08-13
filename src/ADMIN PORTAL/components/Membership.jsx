@@ -14,161 +14,309 @@ import {
 
 import "./membership.css";
 
+
 // =====================================================
 // HELPERS
 // =====================================================
 
 function getTimeValue(value) {
-  if (!value) return 0;
+
+  if (!value) {
+    return 0;
+  }
 
   try {
+
     if (
       typeof value === "object" &&
       typeof value.toDate === "function"
     ) {
+
       return value.toDate().getTime();
+
     }
 
-    const date = new Date(value);
+    const date =
+      new Date(value);
 
-    return Number.isNaN(date.getTime())
+    return Number.isNaN(
+      date.getTime()
+    )
       ? 0
       : date.getTime();
+
   } catch {
+
     return 0;
+
   }
+
 }
 
+
 function formatDate(value) {
+
   if (!value) {
     return "उपलब्ध नहीं";
   }
 
   try {
+
     if (
       typeof value === "object" &&
       typeof value.toDate === "function"
     ) {
-      return value.toDate().toLocaleString("hi-IN");
+
+      return value
+        .toDate()
+        .toLocaleString("hi-IN");
+
     }
 
-    const date = new Date(value);
+    const date =
+      new Date(value);
 
-    if (!Number.isNaN(date.getTime())) {
-      return date.toLocaleString("hi-IN");
+    if (
+      !Number.isNaN(
+        date.getTime()
+      )
+    ) {
+
+      return date.toLocaleString(
+        "hi-IN"
+      );
+
     }
 
     return String(value);
+
   } catch {
+
     return String(value);
+
   }
+
 }
+
 
 function formatFieldName(key) {
+
   const labels = {
+
     fullName: "पूरा नाम",
-    whatsappNumber: "WhatsApp Number",
-    email: "Email",
-    age: "उम्र",
-    gender: "लिंग",
-    district: "जिला",
-    village: "गांव",
-    city: "शहर",
-    villageCity: "गांव / शहर",
-    occupation: "व्यवसाय",
-    address: "पता",
-    fullAddress: "पूरा पता",
-    reason: "संस्था से जुड़ने का उद्देश्य",
-    joinReason: "संस्था से जुड़ने का उद्देश्य",
-    purpose: "उद्देश्य",
-    objective: "उद्देश्य",
-    membershipStatus: "सदस्यता स्थिति",
-    createdAt: "आवेदन दिनांक",
-    updatedAt: "अपडेट दिनांक",
-    approvedAt: "स्वीकृति दिनांक",
-    approvedBy: "स्वीकृत द्वारा",
-    rejectionReason: "अस्वीकृति कारण",
+
+    whatsappNumber:
+      "WhatsApp Number",
+
+    email:
+      "Email",
+
+    age:
+      "उम्र",
+
+    gender:
+      "लिंग",
+
+    district:
+      "जिला",
+
+    village:
+      "गांव",
+
+    city:
+      "शहर",
+
+    villageCity:
+      "गांव / शहर",
+
+    occupation:
+      "व्यवसाय",
+
+    address:
+      "पता",
+
+    fullAddress:
+      "पूरा पता",
+
+    reason:
+      "संस्था से जुड़ने का उद्देश्य",
+
+    joinReason:
+      "संस्था से जुड़ने का उद्देश्य",
+
+    purpose:
+      "उद्देश्य",
+
+    objective:
+      "उद्देश्य",
+
+    membershipStatus:
+      "सदस्यता स्थिति",
+
+    createdAt:
+      "आवेदन दिनांक",
+
+    updatedAt:
+      "अपडेट दिनांक",
+
+    approvedAt:
+      "स्वीकृति दिनांक",
+
+    approvedBy:
+      "स्वीकृत द्वारा",
+
+    rejectionReason:
+      "अस्वीकृति कारण",
+
   };
 
+
   if (labels[key]) {
+
     return labels[key];
+
   }
 
+
   return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (char) => char.toUpperCase());
+    .replace(
+      /([A-Z])/g,
+      " $1"
+    )
+    .replace(
+      /^./,
+      (char) =>
+        char.toUpperCase()
+    );
+
 }
+
 
 // =====================================================
 // DETAIL ITEM
 // =====================================================
 
-function DetailItem({ label, value }) {
-  let finalValue = value;
+function DetailItem({
+  label,
+  value,
+}) {
+
+  let finalValue =
+    value;
+
 
   if (
     value &&
     typeof value === "object" &&
-    typeof value.toDate === "function"
+    typeof value.toDate ===
+      "function"
   ) {
-    finalValue = formatDate(value);
+
+    finalValue =
+      formatDate(value);
+
   } else if (
     value &&
     typeof value === "object"
   ) {
+
     try {
-      finalValue = JSON.stringify(value);
+
+      finalValue =
+        JSON.stringify(
+          value
+        );
+
     } catch {
-      finalValue = String(value);
+
+      finalValue =
+        String(value);
+
     }
+
   }
+
 
   return (
     <div className="membership-detail-item">
+
       <span className="membership-detail-label">
         {label}
       </span>
 
+
       <strong className="membership-detail-value">
-        {finalValue !== undefined &&
-        finalValue !== null &&
-        String(finalValue).trim() !== ""
-          ? String(finalValue)
+
+        {finalValue !==
+          undefined &&
+        finalValue !==
+          null &&
+        String(
+          finalValue
+        ).trim() !== ""
+          ? String(
+              finalValue
+            )
           : "उपलब्ध नहीं"}
+
       </strong>
+
     </div>
   );
+
 }
+
 
 // =====================================================
 // STATUS BADGE
 // =====================================================
 
-function StatusBadge({ status }) {
-  const value = String(status || "").toLowerCase();
+function StatusBadge({
+  status,
+}) {
 
-  if (value === "approved") {
+  const value =
+    String(
+      status || ""
+    ).toLowerCase();
+
+
+  if (
+    value ===
+    "approved"
+  ) {
+
     return (
       <span className="membership-status approved">
         ✓ Approved
       </span>
     );
+
   }
 
-  if (value === "rejected") {
+
+  if (
+    value ===
+    "rejected"
+  ) {
+
     return (
       <span className="membership-status rejected">
         ✕ Rejected
       </span>
     );
+
   }
+
 
   return (
     <span className="membership-status pending">
       Pending
     </span>
   );
+
 }
+
 
 // =====================================================
 // SECTION CARD
@@ -183,36 +331,56 @@ function SectionCard({
   active,
   onClick,
 }) {
+
   return (
     <button
       type="button"
       className={`membership-section-card ${type} ${
-        active ? "active" : ""
+        active
+          ? "active"
+          : ""
       }`}
       onClick={onClick}
     >
+
       <div className="membership-section-icon">
         {icon}
       </div>
 
+
       <div className="membership-section-content">
-        <span>MEMBERSHIP</span>
 
-        <h2>{title}</h2>
+        <span>
+          MEMBERSHIP
+        </span>
 
-        <p>{description}</p>
+
+        <h2>
+          {title}
+        </h2>
+
+
+        <p>
+          {description}
+        </p>
+
       </div>
+
 
       <div className="membership-section-count">
         {count}
       </div>
 
+
       <div className="membership-section-arrow">
         →
       </div>
+
     </button>
   );
+
 }
+
 
 // =====================================================
 // PENDING REQUEST ROW
@@ -225,19 +393,26 @@ function PendingRequestRow({
   onReject,
   actionLoading,
 }) {
+
   const name =
-    member.fullName || "नाम उपलब्ध नहीं";
+    member.fullName ||
+    "नाम उपलब्ध नहीं";
+
 
   return (
     <div className="membership-pending-row">
 
-      {/* NAME */}
-
       <div className="membership-member-info">
 
         <div className="membership-member-avatar">
-          {name.trim().charAt(0).toUpperCase()}
+
+          {name
+            .trim()
+            .charAt(0)
+            .toUpperCase()}
+
         </div>
+
 
         <div className="membership-member-main">
 
@@ -245,56 +420,77 @@ function PendingRequestRow({
             {name}
           </strong>
 
+
           <span>
+
             {member.whatsappNumber ||
               "WhatsApp उपलब्ध नहीं"}
+
           </span>
 
         </div>
 
       </div>
 
-      {/* LOCATION */}
 
       <div className="membership-member-location">
-        {member.district || "-"}
+
+        {member.district ||
+          "-"}
+
       </div>
 
-      {/* DATE */}
 
       <div className="membership-member-date">
-        {formatDate(member.createdAt)}
+
+        {formatDate(
+          member.createdAt
+        )}
+
       </div>
 
-      {/* ACTIONS */}
 
       <div className="membership-pending-actions">
 
         <button
           type="button"
           className="membership-view-button"
-          onClick={() => onView(member)}
-          disabled={actionLoading}
+          onClick={() =>
+            onView(member)
+          }
+          disabled={
+            actionLoading
+          }
         >
           View Full Detail
         </button>
 
+
         <button
           type="button"
           className="membership-approve-button"
-          onClick={() => onApprove(member)}
-          disabled={actionLoading}
+          onClick={() =>
+            onApprove(member)
+          }
+          disabled={
+            actionLoading
+          }
         >
           {actionLoading
             ? "..."
             : "✓ Accept"}
         </button>
 
+
         <button
           type="button"
           className="membership-reject-button"
-          onClick={() => onReject(member)}
-          disabled={actionLoading}
+          onClick={() =>
+            onReject(member)
+          }
+          disabled={
+            actionLoading
+          }
         >
           {actionLoading
             ? "..."
@@ -305,7 +501,9 @@ function PendingRequestRow({
 
     </div>
   );
+
 }
+
 
 // =====================================================
 // MEMBER ROW
@@ -315,9 +513,11 @@ function MemberRow({
   member,
   onView,
 }) {
+
   const name =
     member.fullName ||
     "नाम उपलब्ध नहीं";
+
 
   return (
     <div className="membership-member-row">
@@ -325,8 +525,14 @@ function MemberRow({
       <div className="membership-member-info">
 
         <div className="membership-member-avatar">
-          {name.trim().charAt(0).toUpperCase()}
+
+          {name
+            .trim()
+            .charAt(0)
+            .toUpperCase()}
+
         </div>
+
 
         <div className="membership-member-main">
 
@@ -334,40 +540,62 @@ function MemberRow({
             {name}
           </strong>
 
+
           <span>
+
             {member.whatsappNumber ||
               member.email ||
               "Contact उपलब्ध नहीं"}
+
           </span>
 
         </div>
 
       </div>
 
+
       <div className="membership-member-location">
-        {member.district || "-"}
+
+        {member.district ||
+          "-"}
+
       </div>
 
+
       <div className="membership-member-date">
-        {formatDate(member.createdAt)}
+
+        {formatDate(
+          member.createdAt
+        )}
+
       </div>
+
 
       <div className="membership-member-action">
 
         <button
           type="button"
           className="membership-view-button"
-          onClick={() => onView(member)}
+          onClick={() =>
+            onView(member)
+          }
         >
+
           View Full Detail
-          <span>→</span>
+
+          <span>
+            →
+          </span>
+
         </button>
 
       </div>
 
     </div>
   );
+
 }
+
 
 // =====================================================
 // MEMBER DETAIL MODAL
@@ -381,11 +609,14 @@ function MemberDetailModal({
   showActions = false,
   actionLoading = false,
 }) {
+
   if (!member) {
     return null;
   }
 
+
   const ignoredFields = [
+
     "id",
     "fullName",
     "whatsappNumber",
@@ -409,25 +640,33 @@ function MemberDetailModal({
     "approvedAt",
     "approvedBy",
     "rejectionReason",
+
   ];
 
-  const extraFields = Object.entries(member).filter(
-    ([key]) => !ignoredFields.includes(key)
-  );
+
+  const extraFields =
+    Object.entries(
+      member
+    ).filter(
+      ([key]) =>
+        !ignoredFields.includes(
+          key
+        )
+    );
+
 
   return (
     <div
       className="membership-modal-overlay"
       onClick={onClose}
     >
+
       <div
         className="membership-modal"
         onClick={(event) =>
           event.stopPropagation()
         }
       >
-
-        {/* HEADER */}
 
         <div className="membership-modal-header">
 
@@ -437,16 +676,21 @@ function MemberDetailModal({
               MEMBER DETAILS
             </span>
 
+
             <h2>
               {member.fullName ||
                 "सदस्य विवरण"}
             </h2>
 
+
             <StatusBadge
-              status={member.membershipStatus}
+              status={
+                member.membershipStatus
+              }
             />
 
           </div>
+
 
           <button
             type="button"
@@ -458,7 +702,6 @@ function MemberDetailModal({
 
         </div>
 
-        {/* BODY */}
 
         <div className="membership-modal-body">
 
@@ -466,33 +709,51 @@ function MemberDetailModal({
 
             <DetailItem
               label="पूरा नाम"
-              value={member.fullName}
+              value={
+                member.fullName
+              }
             />
+
 
             <DetailItem
               label="WhatsApp Number"
-              value={member.whatsappNumber}
+              value={
+                member.whatsappNumber
+              }
             />
+
 
             <DetailItem
               label="Email"
-              value={member.email}
+              value={
+                member.email
+              }
             />
+
 
             <DetailItem
               label="उम्र"
-              value={member.age}
+              value={
+                member.age
+              }
             />
+
 
             <DetailItem
               label="लिंग"
-              value={member.gender}
+              value={
+                member.gender
+              }
             />
+
 
             <DetailItem
               label="जिला"
-              value={member.district}
+              value={
+                member.district
+              }
             />
+
 
             <DetailItem
               label="गांव / शहर"
@@ -503,10 +764,14 @@ function MemberDetailModal({
               }
             />
 
+
             <DetailItem
               label="व्यवसाय"
-              value={member.occupation}
+              value={
+                member.occupation
+              }
             />
+
 
             <DetailItem
               label="पता"
@@ -515,6 +780,7 @@ function MemberDetailModal({
                 member.fullAddress
               }
             />
+
 
             <DetailItem
               label="संस्था से जुड़ने का उद्देश्य"
@@ -526,91 +792,139 @@ function MemberDetailModal({
               }
             />
 
+
             <DetailItem
               label="सदस्यता स्थिति"
-              value={member.membershipStatus}
+              value={
+                member.membershipStatus
+              }
             />
+
 
             <DetailItem
               label="आवेदन दिनांक"
-              value={formatDate(member.createdAt)}
+              value={
+                formatDate(
+                  member.createdAt
+                )
+              }
             />
+
 
             <DetailItem
               label="अपडेट दिनांक"
-              value={formatDate(member.updatedAt)}
+              value={
+                formatDate(
+                  member.updatedAt
+                )
+              }
             />
 
+
             {member.rejectionReason && (
+
               <DetailItem
                 label="अस्वीकृति कारण"
-                value={member.rejectionReason}
+                value={
+                  member.rejectionReason
+                }
               />
+
             )}
 
           </div>
 
+
           {extraFields.length > 0 && (
+
             <div className="membership-extra-section">
 
               <div className="membership-extra-title">
                 अन्य जानकारी
               </div>
 
+
               <div className="membership-extra-grid">
 
                 {extraFields.map(
                   ([key, value]) => (
+
                     <DetailItem
                       key={key}
-                      label={formatFieldName(key)}
+                      label={
+                        formatFieldName(
+                          key
+                        )
+                      }
                       value={value}
                     />
+
                   )
                 )}
 
               </div>
 
             </div>
+
           )}
 
         </div>
 
-        {/* FOOTER */}
 
         <div className="membership-modal-footer">
 
           {showActions &&
-            member.membershipStatus ===
+            String(
+              member.membershipStatus ||
+              ""
+            ).toLowerCase() ===
               "pending" && (
+
               <>
+
                 <button
                   type="button"
                   className="membership-approve-button"
                   onClick={() =>
-                    onApprove(member)
+                    onApprove(
+                      member
+                    )
                   }
-                  disabled={actionLoading}
+                  disabled={
+                    actionLoading
+                  }
                 >
+
                   {actionLoading
                     ? "Processing..."
                     : "✓ Accept Application"}
+
                 </button>
+
 
                 <button
                   type="button"
                   className="membership-reject-button"
                   onClick={() =>
-                    onReject(member)
+                    onReject(
+                      member
+                    )
                   }
-                  disabled={actionLoading}
+                  disabled={
+                    actionLoading
+                  }
                 >
+
                   {actionLoading
                     ? "Processing..."
                     : "✕ Reject Application"}
+
                 </button>
+
               </>
+
             )}
+
 
           <button
             type="button"
@@ -623,9 +937,12 @@ function MemberDetailModal({
         </div>
 
       </div>
+
     </div>
   );
+
 }
+
 
 // =====================================================
 // MAIN MEMBERSHIP
@@ -636,36 +953,41 @@ function Membership() {
   const [members, setMembers] =
     useState([]);
 
+
   const [loading, setLoading] =
     useState(true);
+
 
   const [error, setError] =
     useState("");
 
+
   const [search, setSearch] =
     useState("");
 
-  // IMPORTANT:
-  // Default pending rakha hai.
-  // Dashboard ke request card se Membership open hote hi
-  // pending applications dikhenge.
+
   const [activeSection, setActiveSection] =
     useState("pending");
+
 
   const [selectedMember, setSelectedMember] =
     useState(null);
 
+
   const [actionLoadingId, setActionLoadingId] =
     useState(null);
+
 
   // ===================================================
   // LOAD MEMBERS
   // ===================================================
 
   async function loadMembers() {
+
     try {
 
       setError("");
+
 
       const snapshot =
         await getDocs(
@@ -675,19 +997,29 @@ function Membership() {
           )
         );
 
+
       const data =
         snapshot.docs.map(
           (item) => ({
+
             id: item.id,
+
             ...item.data(),
+
           })
         );
 
+
       data.sort(
         (a, b) =>
-          getTimeValue(b.createdAt) -
-          getTimeValue(a.createdAt)
+          getTimeValue(
+            b.createdAt
+          ) -
+          getTimeValue(
+            a.createdAt
+          )
       );
+
 
       setMembers(data);
 
@@ -697,6 +1029,7 @@ function Membership() {
         "Membership load error:",
         err
       );
+
 
       setError(
         err?.message ||
@@ -708,7 +1041,9 @@ function Membership() {
       setLoading(false);
 
     }
+
   }
+
 
   // ===================================================
   // INITIAL LOAD
@@ -716,7 +1051,9 @@ function Membership() {
 
   useEffect(() => {
 
-    let cancelled = false;
+    let cancelled =
+      false;
+
 
     async function initialLoad() {
 
@@ -730,25 +1067,37 @@ function Membership() {
             )
           );
 
+
         if (cancelled) {
           return;
         }
 
+
         const data =
           snapshot.docs.map(
             (item) => ({
+
               id: item.id,
+
               ...item.data(),
+
             })
           );
 
+
         data.sort(
           (a, b) =>
-            getTimeValue(b.createdAt) -
-            getTimeValue(a.createdAt)
+            getTimeValue(
+              b.createdAt
+            ) -
+            getTimeValue(
+              a.createdAt
+            )
         );
 
+
         setMembers(data);
+
         setError("");
 
       } catch (err) {
@@ -760,6 +1109,7 @@ function Membership() {
             err
           );
 
+
           setError(
             err?.message ||
             "Membership data load नहीं हो सका।"
@@ -770,151 +1120,227 @@ function Membership() {
       } finally {
 
         if (!cancelled) {
+
           setLoading(false);
+
         }
 
       }
 
     }
 
+
     void initialLoad();
 
+
     return () => {
+
       cancelled = true;
+
     };
 
   }, []);
+
 
   // ===================================================
   // PENDING
   // ===================================================
 
-  const pendingMembers = useMemo(
-    () =>
-      members.filter(
-        (member) =>
-          String(
-            member.membershipStatus || ""
-          ).toLowerCase() === "pending"
-      ),
-    [members]
-  );
+  const pendingMembers =
+    useMemo(
+      () =>
+        members.filter(
+          (member) =>
+            String(
+              member.membershipStatus ||
+              ""
+            )
+              .trim()
+              .toLowerCase() ===
+            "pending"
+        ),
+      [members]
+    );
+
 
   // ===================================================
   // APPROVED
+  // THIS IS THE MASTER COUNT
   // ===================================================
 
-  const approvedMembers = useMemo(
-    () =>
-      members.filter(
-        (member) =>
-          String(
-            member.membershipStatus || ""
-          ).toLowerCase() === "approved"
-      ),
-    [members]
-  );
+  const approvedMembers =
+    useMemo(
+      () =>
+        members.filter(
+          (member) =>
+            String(
+              member.membershipStatus ||
+              ""
+            )
+              .trim()
+              .toLowerCase() ===
+            "approved"
+        ),
+      [members]
+    );
+
 
   // ===================================================
   // REJECTED
   // ===================================================
 
-  const rejectedMembers = useMemo(
-    () =>
-      members.filter(
-        (member) =>
-          String(
-            member.membershipStatus || ""
-          ).toLowerCase() === "rejected"
-      ),
-    [members]
-  );
+  const rejectedMembers =
+    useMemo(
+      () =>
+        members.filter(
+          (member) =>
+            String(
+              member.membershipStatus ||
+              ""
+            )
+              .trim()
+              .toLowerCase() ===
+            "rejected"
+        ),
+      [members]
+    );
+
 
   // ===================================================
   // SEARCH
   // ===================================================
 
   const searchText =
-    search.trim().toLowerCase();
+    search
+      .trim()
+      .toLowerCase();
 
-  function filterMembers(list) {
+
+  function filterMembers(
+    list
+  ) {
 
     if (!searchText) {
+
       return list;
+
     }
+
 
     return list.filter(
       (member) => {
 
         const name =
           String(
-            member.fullName || ""
+            member.fullName ||
+            ""
           ).toLowerCase();
+
 
         const whatsapp =
           String(
-            member.whatsappNumber || ""
+            member.whatsappNumber ||
+            ""
           ).toLowerCase();
+
 
         const email =
           String(
-            member.email || ""
+            member.email ||
+            ""
           ).toLowerCase();
+
 
         const district =
           String(
-            member.district || ""
+            member.district ||
+            ""
           ).toLowerCase();
 
+
         return (
-          name.includes(searchText) ||
-          whatsapp.includes(searchText) ||
-          email.includes(searchText) ||
-          district.includes(searchText)
+          name.includes(
+            searchText
+          ) ||
+          whatsapp.includes(
+            searchText
+          ) ||
+          email.includes(
+            searchText
+          ) ||
+          district.includes(
+            searchText
+          )
         );
+
       }
     );
+
   }
 
+
   const visiblePending =
-    filterMembers(pendingMembers);
+    filterMembers(
+      pendingMembers
+    );
+
 
   const visibleApproved =
-    filterMembers(approvedMembers);
+    filterMembers(
+      approvedMembers
+    );
+
 
   const visibleRejected =
-    filterMembers(rejectedMembers);
+    filterMembers(
+      rejectedMembers
+    );
+
 
   // ===================================================
   // ACCEPT
   // ===================================================
 
-  async function handleApprove(member) {
+  async function handleApprove(
+    member
+  ) {
 
     if (!member?.id) {
       return;
     }
+
 
     const confirmed =
       window.confirm(
         `क्या आप "${member.fullName}" का membership application Accept करना चाहते हैं?`
       );
 
+
     if (!confirmed) {
       return;
     }
 
+
     try {
 
-      setActionLoadingId(member.id);
+      setActionLoadingId(
+        member.id
+      );
+
+
       setError("");
+
 
       await approveMembership(
         member.id,
         "Admin"
       );
 
-      setSelectedMember(null);
+
+      setSelectedMember(
+        null
+      );
+
 
       await loadMembers();
 
@@ -925,6 +1351,7 @@ function Membership() {
         err
       );
 
+
       setError(
         err?.message ||
         "Application approve नहीं हो सका।"
@@ -932,34 +1359,48 @@ function Membership() {
 
     } finally {
 
-      setActionLoadingId(null);
+      setActionLoadingId(
+        null
+      );
 
     }
+
   }
+
 
   // ===================================================
   // REJECT
   // ===================================================
 
-  async function handleReject(member) {
+  async function handleReject(
+    member
+  ) {
 
     if (!member?.id) {
       return;
     }
+
 
     const reason =
       window.prompt(
         "Reject करने का कारण लिखें (optional):"
       );
 
+
     if (reason === null) {
       return;
     }
 
+
     try {
 
-      setActionLoadingId(member.id);
+      setActionLoadingId(
+        member.id
+      );
+
+
       setError("");
+
 
       await rejectMembership(
         member.id,
@@ -967,7 +1408,11 @@ function Membership() {
         "Admin"
       );
 
-      setSelectedMember(null);
+
+      setSelectedMember(
+        null
+      );
+
 
       await loadMembers();
 
@@ -978,6 +1423,7 @@ function Membership() {
         err
       );
 
+
       setError(
         err?.message ||
         "Application reject नहीं हो सका।"
@@ -985,23 +1431,31 @@ function Membership() {
 
     } finally {
 
-      setActionLoadingId(null);
+      setActionLoadingId(
+        null
+      );
 
     }
+
   }
+
 
   // ===================================================
   // ACTIVE LIST
   // ===================================================
 
   const visibleMembers =
-    activeSection === "pending"
+    activeSection ===
+      "pending"
       ? visiblePending
-      : activeSection === "approved"
-      ? visibleApproved
-      : activeSection === "rejected"
-      ? visibleRejected
-      : [];
+      : activeSection ===
+          "approved"
+        ? visibleApproved
+        : activeSection ===
+            "rejected"
+          ? visibleRejected
+          : [];
+
 
   // ===================================================
   // UI
@@ -1020,9 +1474,11 @@ function Membership() {
             MEMBER MANAGEMENT
           </span>
 
+
           <h1>
             Membership
           </h1>
+
 
           <p>
             Pending applications को approve/reject
@@ -1031,29 +1487,41 @@ function Membership() {
 
         </div>
 
+
         <button
           type="button"
           className="membership-refresh-button"
           onClick={() => {
+
             setLoading(true);
+
             void loadMembers();
+
           }}
           disabled={loading}
         >
+
           {loading
             ? "Loading..."
             : "↻ Refresh"}
+
         </button>
 
       </div>
 
+
       {/* ERROR */}
 
       {error && (
+
         <div className="membership-error">
+
           ⚠️ {error}
+
         </div>
+
       )}
+
 
       {/* LOADING */}
 
@@ -1063,9 +1531,11 @@ function Membership() {
 
           <div className="loading-spinner"></div>
 
+
           <h3>
             Membership लोड हो रहा है...
           </h3>
+
 
           <p>
             कृपया थोड़ा इंतजार करें।
@@ -1085,48 +1555,75 @@ function Membership() {
               type="pending"
               title="Pending Requests"
               description="समीक्षा के लिए लंबित आवेदन"
-              count={pendingMembers.length}
+              count={
+                pendingMembers.length
+              }
               icon="📋"
               active={
-                activeSection === "pending"
+                activeSection ===
+                "pending"
               }
               onClick={() => {
+
                 setSearch("");
-                setActiveSection("pending");
+
+                setActiveSection(
+                  "pending"
+                );
+
               }}
             />
+
 
             <SectionCard
               type="approved"
               title="Approved Members"
               description="संस्था के स्वीकृत सदस्य"
-              count={approvedMembers.length}
+              count={
+                approvedMembers.length
+              }
               icon="✓"
               active={
-                activeSection === "approved"
+                activeSection ===
+                "approved"
               }
               onClick={() => {
+
                 setSearch("");
-                setActiveSection("approved");
+
+                setActiveSection(
+                  "approved"
+                );
+
               }}
             />
+
 
             <SectionCard
               type="rejected"
               title="Rejected Members"
               description="अस्वीकृत सदस्य आवेदन"
-              count={rejectedMembers.length}
+              count={
+                rejectedMembers.length
+              }
               icon="✕"
               active={
-                activeSection === "rejected"
+                activeSection ===
+                "rejected"
               }
               onClick={() => {
+
                 setSearch("");
-                setActiveSection("rejected");
+
+                setActiveSection(
+                  "rejected"
+                );
+
               }}
             />
 
           </div>
+
 
           {/* LIST PANEL */}
 
@@ -1138,33 +1635,42 @@ function Membership() {
 
                 <span className="panel-eyebrow">
 
-                  {activeSection === "pending"
+                  {activeSection ===
+                    "pending"
                     ? "PENDING REQUESTS"
-                    : activeSection === "approved"
-                    ? "APPROVED MEMBERS"
-                    : "REJECTED MEMBERS"}
+                    : activeSection ===
+                        "approved"
+                      ? "APPROVED MEMBERS"
+                      : "REJECTED MEMBERS"}
 
                 </span>
 
+
                 <h2>
 
-                  {activeSection === "pending"
+                  {activeSection ===
+                    "pending"
                     ? "Pending Membership Requests"
-                    : activeSection === "approved"
-                    ? "Approved Members"
-                    : "Rejected Members"}
+                    : activeSection ===
+                        "approved"
+                      ? "Approved Members"
+                      : "Rejected Members"}
 
                 </h2>
 
               </div>
 
+
               <div className="membership-list-count">
 
-                {visibleMembers.length} Members
+                {visibleMembers.length}
+                {" "}
+                Members
 
               </div>
 
             </div>
+
 
             {/* SEARCH */}
 
@@ -1173,6 +1679,7 @@ function Membership() {
               <span>
                 🔎
               </span>
+
 
               <input
                 type="text"
@@ -1185,7 +1692,9 @@ function Membership() {
                 placeholder="नाम, WhatsApp, Email या जिला खोजें..."
               />
 
+
               {search && (
+
                 <button
                   type="button"
                   className="membership-search-clear"
@@ -1195,29 +1704,38 @@ function Membership() {
                 >
                   ×
                 </button>
+
               )}
 
             </div>
+
 
             {/* LIST */}
 
             <div className="membership-member-list">
 
-              {visibleMembers.length === 0 ? (
+              {visibleMembers.length ===
+              0 ? (
 
                 <div className="membership-no-results">
 
                   <div>
-                    {activeSection === "pending"
+                    {activeSection ===
+                    "pending"
                       ? "📋"
                       : "👥"}
                   </div>
 
+
                   <h3>
-                    {activeSection === "pending"
+
+                    {activeSection ===
+                    "pending"
                       ? "कोई Pending Request नहीं है"
                       : "कोई member नहीं मिला"}
+
                   </h3>
+
 
                   <p>
                     अभी इस section में कोई
@@ -1235,10 +1753,15 @@ function Membership() {
                       activeSection ===
                       "pending"
                     ) {
+
                       return (
                         <PendingRequestRow
-                          key={member.id}
-                          member={member}
+                          key={
+                            member.id
+                          }
+                          member={
+                            member
+                          }
                           onView={
                             setSelectedMember
                           }
@@ -1254,17 +1777,24 @@ function Membership() {
                           }
                         />
                       );
+
                     }
+
 
                     return (
                       <MemberRow
-                        key={member.id}
-                        member={member}
+                        key={
+                          member.id
+                        }
+                        member={
+                          member
+                        }
                         onView={
                           setSelectedMember
                         }
                       />
                     );
+
                   }
                 )
 
@@ -1278,19 +1808,27 @@ function Membership() {
 
       )}
 
+
       {/* DETAIL MODAL */}
 
       {selectedMember && (
+
         <MemberDetailModal
-          member={selectedMember}
+          member={
+            selectedMember
+          }
           onClose={() =>
-            setSelectedMember(null)
+            setSelectedMember(
+              null
+            )
           }
           showActions={
             String(
               selectedMember.membershipStatus ||
               ""
-            ).toLowerCase() ===
+            )
+              .trim()
+              .toLowerCase() ===
             "pending"
           }
           onApprove={
@@ -1304,10 +1842,13 @@ function Membership() {
             selectedMember.id
           }
         />
+
       )}
 
     </section>
   );
+
 }
+
 
 export default Membership;
