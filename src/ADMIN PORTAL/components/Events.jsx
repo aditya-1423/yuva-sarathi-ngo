@@ -271,7 +271,7 @@ function Events() {
 
       <div className="admin-section-header">
         <div>
-          <h2>🎉 कार्यक्रम / Karyakram</h2>
+          <h2>🎉 कार्यक्रम / Events</h2>
 
           <p>
             संस्था के कार्यक्रम यहाँ जोड़ें और

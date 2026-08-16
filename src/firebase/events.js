@@ -20,7 +20,7 @@ import {
 
 const EVENTS_COLLECTION = "events";
 
-const MAX_EVENT_IMAGES = 5;
+const MAX_EVENT_IMAGES = 10;
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
 /* =========================================================
@@ -144,7 +144,7 @@ export async function createEvent({
     MAX_EVENT_IMAGES
   ) {
     throw new Error(
-      "एक कार्यक्रम में अधिकतम 5 तस्वीरें चुन सकते हैं।"
+      "एक कार्यक्रम में अधिकतम 10 तस्वीरें चुन सकते हैं।"
     );
   }
 
