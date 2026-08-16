@@ -32,7 +32,7 @@ const ADMIN_EMAIL = "adityaverma1325@gmail.com";
    MAXIMUM EVENT IMAGES
 ========================================================= */
 
-const MAX_EVENT_IMAGES = 5;
+const MAX_EVENT_IMAGES = 10;
 
 /* =========================================================
    EXTRACT IMAGE VALUE

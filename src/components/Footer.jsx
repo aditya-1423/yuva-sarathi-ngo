@@ -21,14 +21,15 @@ const Footer = () => {
       url: "#",
     },
     {
+      
       name: "Instagram",
-      icon: "◎",
-      url: "#",
+      icon: "▣",
+      url: "https://www.instagram.com/_aditya_verma._23",
     },
     {
       name: "YouTube",
       icon: "▶",
-      url: "#",
+      url: "https://www.youtube.com/@Aditya_verma_14",
     },
   ];
 
