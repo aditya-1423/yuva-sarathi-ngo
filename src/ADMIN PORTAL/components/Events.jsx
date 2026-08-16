@@ -6,7 +6,7 @@ import {
   deleteEvent,
 } from "../../firebase/events.js";
 
-const MAX_EVENT_IMAGES = 5;
+const MAX_EVENT_IMAGES = 10;
 const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
 function Events() {
@@ -82,7 +82,7 @@ function Events() {
       setImages([]);
 
       setMessage(
-        "एक कार्यक्रम में अधिकतम 5 तस्वीरें ही चुन सकते हैं।"
+        "एक कार्यक्रम में अधिकतम 10 तस्वीरें ही चुन सकते हैं।"
       );
 
       event.target.value = "";
@@ -369,7 +369,7 @@ function Events() {
           </label>
 
           <p className="form-help">
-            अधिकतम 5 तस्वीरें • प्रत्येक image
+            अधिकतम 10 तस्वीरें • प्रत्येक image
             अधिकतम 15 MB
           </p>
 
