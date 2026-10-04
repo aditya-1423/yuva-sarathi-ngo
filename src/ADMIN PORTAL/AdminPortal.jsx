@@ -7,7 +7,7 @@ import Membership from "./components/Membership.jsx";
 import Events from "./components/Events.jsx";
 import Gallery from "./components/Gallery.jsx";
 
-import logo from "../assets/logo.png";
+import logo from "../assets/logo2.png";
 
 import "./admin.css";
 
